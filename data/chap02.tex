@@ -1,144 +1,95 @@
 % !TeX root = ../thuthesis-example.tex
 
-\chapter{图表示例}
+\chapter{研究现状与相关工作}
 
-\section{插图}
-
-图片通常在 \env{figure} 环境中使用 \cs{includegraphics} 插入，如图~\ref{fig:example} 的源代码。
-建议矢量图片使用 PDF 格式，比如数据可视化的绘图；
-照片应使用 JPG 格式；
-其他的栅格图应使用无损的 PNG 格式。
-注意，LaTeX 不支持 TIFF 格式；EPS 格式已经过时。
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.5\linewidth]{example-image-a.pdf}
-  \caption*{国外的期刊习惯将图表的标题和说明文字写成一段，需要改写为标题只含图表的名称，其他说明文字以注释方式写在图表下方，或者写在正文中。}
-  \caption{示例图片标题}
-  \label{fig:example}
-\end{figure}
-
-若图或表中有附注，采用英文小写字母顺序编号，附注写在图或表的下方。
-国外的期刊习惯将图表的标题和说明文字写成一段，需要改写为标题只含图表的名称，其他说明文字以注释方式写在图表下方，或者写在正文中。
-
-如果一个图由两个或两个以上分图组成时，各分图分别以 (a)、(b)、(c)...... 作为图序，并须有分图题。
-推荐使用 \pkg{subcaption} 宏包来处理， 比如图~\ref{fig:subfig-a} 和图~\ref{fig:subfig-b}。
-
-\begin{figure}
-  \centering
-  \subcaptionbox{分图 A\label{fig:subfig-a}}
-    {\includegraphics[width=0.35\linewidth]{example-image-a.pdf}}
-  \subcaptionbox{分图 B\label{fig:subfig-b}}
-    {\includegraphics[width=0.35\linewidth]{example-image-b.pdf}}
-  \caption{多个分图的示例}
-  \label{fig:multi-image}
-\end{figure}
+上一章总体介绍了大模型训练和微调过程中面临的严重效率挑战。
+% 针对这个问题，本文从超参数、训练配方、扩展定律、性能预测定律、数据配置五个角度出发研究了可预测与训练技术，可以大幅提升大规模预训练的成功率和效率；从先验知识整合、少参数微调、高效样本激活三个方面研究了低资源微调，可以大幅降低大语言模型在领域适配训练中的资源消耗和适配效率。
+在本章中，我将介绍大模型的发展现状，研究背景和相关工作。
 
 
+\section{Transformer架构}
+自然语言处理领域的革命性突破始于2017年Transformer架构~\cite{Vaswani+2017}的诞生。这个由Vaswani等人提出的创新架构，彻底改变了传统序列建模的范式。其核心设计摒弃了循环神经网络（RNN）的时序依赖特性，转而采用全局注意力机制，这使得模型能够并行处理整个文本序列，训练效率提升达数十倍。当前最先进的GPT-4~\cite{openai2023gpt4}、PaLM~\cite{chowdhery2023palm}等千亿参数模型，均建立在此基础架构之上。
 
-\section{表格}
+每个Transformer层由两个关键模块协同工作：注意力机制构成的动态特征提取器与静态特征转换模块前馈网络。这种设计实现了对文本语义的多维度解析——注意力机制捕捉词语间的动态关联，前馈网络则负责特征的深度非线性转换。
 
-表应具有自明性。为使表格简洁易读，尽可能采用三线表，如表~\ref{tab:three-line}。
-三条线可以使用 \pkg{booktabs} 宏包提供的命令生成。
+\paragraph{注意力机制}
+基础注意力机制通过(Q,K,V)三元组运算建立关联矩阵。其数学表达：
 
-\begin{table}
-  \centering
-  \caption{三线表示例}
-  \begin{tabular}{ll}
-    \toprule
-    文件名          & 描述                         \\
-    \midrule
-    thuthesis.dtx   & 模板的源文件，包括文档和注释 \\
-    thuthesis.cls   & 模板文件                     \\
-    thuthesis-*.bst & BibTeX 参考文献表样式文件    \\
-    \bottomrule
-  \end{tabular}
-  \label{tab:three-line}
-\end{table}
+\begin{equation}
+    \text{Attention}(Q, K, V) = \text{Softmax}(\frac{QK^T}{\sqrt{d_k}})V
+\end{equation}
+其中归一化因子$\sqrt{d_k}$的引入有效缓解了高维空间中的梯度消失问题。
 
-表格如果有附注，尤其是需要在表格中进行标注时，可以使用 \pkg{threeparttable} 宏包。
-研究生要求使用英文小写字母 a、b、c……顺序编号，本科生使用圈码 ①、②、③……编号。
+自注意力机制的精妙之处在于让输入序列自我参照。通过线性投影矩阵$W^Q$、$W^K$、$W^V$从输入表示$X$中生成差异化的特征空间，使得同一词语能同时承担查询者与被查询者的双重角色。这种设计使得模型可以建立跨越整个文本的语义关联，例如在"银行"的词义消歧中，模型能同时关注到“河流”或“金融”等上下文线索。
 
-\begin{table}
-  \centering
-  \begin{threeparttable}[c]
-    \caption{带附注的表格示例}
-    \label{tab:three-part-table}
-    \begin{tabular}{ll}
-      \toprule
-      文件名                 & 描述                         \\
-      \midrule
-      thuthesis.dtx\tnote{a} & 模板的源文件，包括文档和注释 \\
-      thuthesis.cls\tnote{b} & 模板文件                     \\
-      thuthesis-*.bst        & BibTeX 参考文献表样式文件    \\
-      \bottomrule
-    \end{tabular}
-    \begin{tablenotes}
-      \item [a] 可以通过 xelatex 编译生成模板的使用说明文档；
-        使用 xetex 编译 \file{thuthesis.ins} 时则会从 \file{.dtx} 中去除掉文档和注释，得到精简的 \file{.cls} 文件。
-      \item [b] 更新模板时，一定要记得编译生成 \file{.cls} 文件，否则编译论文时载入的依然是旧版的模板。
-    \end{tablenotes}
-  \end{threeparttable}
-\end{table}
+Transformer中还引入了多头注意力机制。将$d_{model}$维的嵌入空间分割为$h$个独立子空间（通常每个子空间的维度为64或者128），每个头学习不同的关联模式。这种设计类似于卷积神经网络中的多通道概念，允许模型并行捕获语法、语义、指代等不同类型的语言特征。其输出通过可学习的投影矩阵$W^O$实现特征融合，保证了维度的一致性。
 
-如某个表需要转页接排，可以使用 \pkg{longtable} 宏包，需要在随后的各页上重复表的编号。
-编号后跟表题（可省略）和“（续）”，置于表上方。续表均应重复表头。
+\paragraph{前馈网络}
+标准的双层前馈网络(FFN)通过激活函数实现特征变换：
+\begin{equation}
+    \text{FFN}(x) = \text{ReLU}(xW_1 + b_1)W_2 + b_2
+\end{equation}
+Google研究者提出的门控线性单元(GLU)[23]在此基础上引入门控机制：
+\begin{equation}
+    \text{GLU}(x) = (xW_1 \odot \sigma(xW_2))W_3
+\end{equation}
 
-\begin{longtable}{cccc}
-    \caption{跨页长表格的表题}
-    \label{tab:longtable} \\
-    \toprule
-    表头 1 & 表头 2 & 表头 3 & 表头 4 \\
-    \midrule
-  \endfirsthead
-    \caption*{续表~\thetable\quad 跨页长表格的表题} \\
-    \toprule
-    表头 1 & 表头 2 & 表头 3 & 表头 4 \\
-    \midrule
-  \endhead
-    \bottomrule
-  \endfoot
-  Row 1  & & & \\
-  Row 2  & & & \\
-  Row 3  & & & \\
-  Row 4  & & & \\
-  Row 5  & & & \\
-  Row 6  & & & \\
-  Row 7  & & & \\
-  Row 8  & & & \\
-  Row 9  & & & \\
-  Row 10 & & & \\
-\end{longtable}
+其中$\sigma$代表sigmoid函数，这种设计增强了模型对特征重要性的调节能力，在同等参数量下提升了模型性能。
+
+本文建立与Transformer架构基础上，主要研究该架构下的可预测预训练和少资源微调方法。
+
+\section{训练范式}
+现代大语言模型的训练遵循"预训练+微调"的两阶段范式。预训练范式在历史上出现过多种，例如
+\begin{enumerate}
+    \item 自回归预测（GPT系列）：基于上文逐词预测，采用单向注意力掩码，适合文本生成任务
+    \item 掩码语言建模（BERT系列）：随机遮蔽15\%的输入词元，利用双向上下文进行预测，擅长语义理解
+    \item 混合目标训练（T5、BART）：结合文本修复、句子重排等多种预训练任务，增强模型鲁棒性
+\end{enumerate}
+现在比较主流的是第一种，自回归预测，方式简单通用。
+
+在预训练过程中，模型在TB量级的数据上进行大规模预训练，每一次大规模预训练都将花费巨量开销，因此训练次数的稀缺性成为了调整模型性能的瓶颈。而在预训练之后，模型会被微调，以适应下游任务。由于下游任务种类众多，并且通常在应用端进行，因此不具备大规模算力。本文在“预训练+微调”范式的两个阶段都做了对应的创新，以实现全流程高效的训练。
+
+\section{损失扩展定律}
+
+广泛的深度学习训练都被观察到有所谓“扩展”现象\citep{hestness2017deep, kaplan2020scaling, rae2021scaling, aghajanyan2023scaling}。文献\citet{hestness2017deep}研究了基于循环神经网络（RNN）模型中损失的幂律扩展行为。\citet{kaplan2020scaling}描绘了基于Transformer的语言模型的损失扩展趋势，并探究了最优超参数的扩展行为。他们正式确立了如下扩展定律：
+\begin{equation}
+\label{eq:loss_scaling_law}
+    L = c N^{-\alpha} + L_0,
+\end{equation}
+其中\(N\)是模型（在他们的研究范围内特指大语言模型）的非嵌入参数数量，\(c\)、\(\alpha\)为正系数，\(L_0\)是代表数据中随机性的不可约损失。这一公式推动了大语言模型的广泛应用。随后，针对各种领域和场景都建立了扩展定律，包括多模态\citep{henighan2020scaling, zhai2022scaling}、计算受限场景\citep{hoffmann2022training}、数据工程\citep{muennighoff2023scaling,sorscher2022beyond}以及强化学习\citep{gao2023scaling}等领域。\citet{yao2023research}通过引入超参数扩展方法，将该扩展定律扩展到损失预测领域。我们的工作与现有文献存在两方面的联系。其一，这些文献主要聚焦于训练和验证损失指标，而这些指标并不能可靠地预测任务性能。其二，我们的研究基于这些扩展定律，并将公式（\ref{eq:loss_scaling_law}）的数学形式扩展到任务性能的扩展定律。
+
+\section{可扩展的预训练策略}
+
+自从发现扩展定律\citep{hestness2017deep, kaplan2020scaling, rae2021scaling, aghajanyan2023scaling}以来，人们从不同角度追求科学且可预测地\citep{achiam2023gpt,hu2023unlock, du2024understanding}扩大大语言模型的规模，尤其是在预训练阶段。在训练稳定性方面，引入了张量程序系列\citep{yang2022tensor, yang2023tensor}，以确保在不同模型规模下超参数的最优一致性。这种技术被用在训练CerebrasGPT\citep{dey2023cerebras}中。此外，\cite{wortsman2023small}建议利用较小的模型来预测并减轻较大模型训练中的不稳定性。从训练数据的角度来看，人们倡导了各种以数据为中心的策略\citep{xie2024doremi, shi2023context, ye2024data}。在训练方法领域，先前的研究深入探讨了各种学习率调度器（LRS）\citep{howard2018universal, raffel2020exploring, hundt2019sharpdarts}，其中余弦退火学习率调度器（Cosine LRS）\citep{loshchilov2016sgdr}成为大语言模型中的主要选择。\cite{kaplan2020scaling}和\cite{hoffmann2022training}精心研究了余弦退火学习率调度器的超参数，从而为后续的预训练工作奠定了基础。也有一些工作采用了非余弦退火学习率调度，例如DeepSeek\citep{bi2024deepseek}与本文将提出的WSD LRS有一定相似之处。关于批量大小调度，\cite{smith2017don}主张增加批量大小作为降低学习率的替代方法，这也是Yi-9B\citep{young2024yi}最近采用的策略。
+
+\section{任务性能的扩展行为}
+
+尽管大语言模型的损失呈现可预测的下降趋势，但在模型扩展过程中，任务性能的提升却并非一帆风顺。虽然一些主要依赖知识记忆的任务呈现出逐步提升的态势，但随着模型规模的增大，众多任务展现出突破性的行为\citep{srivastava2022beyond,wei2022emergent}。\citet{wei2022emergent}表明，“涌现”这一概念同样适用于诸如思维链\citep{wei2022chain}和上下文学习\citep{brown2020language}等提示技术，这使得理解任务性能的扩展定律变得更加复杂。似乎损失扩展定律并不能保证任务性能的提升，在预训练方法上也缺乏指导意义。
+幸运的是，有几项研究致力于揭开这些涌现能力的神秘面纱。GPT - 4的技术报告\citep{openai2023gpt4}称，GPT - 4的任务性能可以用不到万分之一的计算量进行预测，不过并未披露具体方法，且承认某些能力仍然无法预测。后续研究\citep{schaeffer2023emergent}将涌现归因于两个原因。第一个原因是非平滑指标。我们对此并不认同，因为替代指标无法解释像精确匹配这样我们最为关注的目标指标的突然提升。我们认同他们的第二个归因，即通过增加更多测试样本来提高分辨率。与他们的方法不同，我们提出了一种无需增加测试样本就能提高分辨率的实用方法。我们的工作也是首次在开源环境下对任务性能的扩展行为进行定量研究的尝试，提出了任务扩展定律和加速涌现现象。 
+
+ 
+
+\section{小规模语言模型}
+
+在本文中，我们使用本文提出的多种可预测预训练技术，利用很少的资源预训练了一个小规模语言模型 （2.4B参数规模），其效果超过同期的Llama2-7B~\cite{touvron2023llama2}，比肩Mistral-7B~\cite{jiang2023mistral}。
+所谓“小语言模型”（SLMs），是一个不断演变的概念，随着时间推移经历了重大变革。目前，小语言模型通常被理解为与知名大语言模型相比规模较小的模型，其参数一般不超过70亿。这些模型的特点是能够在终端用户设备（如个人电脑和智能手机）上部署，即便没有图形处理器（GPU）也能运行。当前小语言模型领域的典型例子包括Phi系列\citep{gunasekar2023textbooks, li2023textbooks, Javaheripi2023Phi2}、TinyLlama\citep{zhang2024tinyllama}、MobileLLM\citep{liu2024mobilellm}以及Gemma\citep{Banks2024Gemma}等。 人们探索了多种方法来提高小语言模型的效能。这些方法包括纳入高质量数据\citep{gunasekar2023textbooks, li2023textbooks, Javaheripi2023Phi2}、应用结构剪枝技术\citep{xia2023sheared}，以及重新配置模型架构\citep{liu2024mobilellm}等。本文通过精心整合超参数优化、策略性训练方法、架构设计以及高质量数据，提升了小语言模型的能力。
 
 
+\section{提示学习}
 
-\section{算法}
+\section{参数高效微调}
+随着模型规模指数级增长（从GPT-2的15亿到GPT-4的1.8万亿参数），全参数微调面临严峻挑战：
+1. **计算成本**：微调175B参数的GPT-3需要数千张GPU的算力
+2. **灾难性遗忘**：过度微调会导致模型丧失通用能力
 
-算法环境可以使用 \pkg{algorithms} 或者 \pkg{algorithm2e} 宏包。
+参数高效微调技术应运而生：
+- **适配器网络**（Adapter）：在Transformer层间插入小型神经网络模块
+- **提示微调**（Prompt Tuning）：通过可学习的软提示向量引导模型行为
+- **低秩适应**（LoRA）[21]：用低秩矩阵分解实现参数更新，可将微调参数量减少万倍
 
-\renewcommand{\algorithmicrequire}{\textbf{输入：}\unskip}
-\renewcommand{\algorithmicensure}{\textbf{输出：}\unskip}
+以LoRA为例，其核心思想是将权重更新$\Delta W$分解为$BA^T$形式，其中$B\in \mathbb{R}^{d\times r}$, $A\in \mathbb{R}^{r\times k}$，秩$r$远小于原维度$d$。这种方法在保持90\%以上性能的同时，将微调成本降低两个数量级。
 
-\begin{algorithm}
-  \caption{Calculate $y = x^n$}
-  \label{alg1}
-  \small
-  \begin{algorithmic}
-    \REQUIRE $n \geq 0$
-    \ENSURE $y = x^n$
+这些技术创新不仅推动了语言模型的实际应用，也为构建更高效的训练体系提供了理论基础。理解这些核心机制，将为我们后续探讨模型压缩、分布式训练等前沿话题奠定关键基础。
 
-    \STATE $y \leftarrow 1$
-    \STATE $X \leftarrow x$
-    \STATE $N \leftarrow n$
 
-    \WHILE{$N \neq 0$}
-      \IF{$N$ is even}
-        \STATE $X \leftarrow X \times X$
-        \STATE $N \leftarrow N / 2$
-      \ELSE[$N$ is odd]
-        \STATE $y \leftarrow y \times X$
-        \STATE $N \leftarrow N - 1$
-      \ENDIF
-    \ENDWHILE
-  \end{algorithmic}
-\end{algorithm}
+在训练前预测任务性能是可预测人工智能系统发展的一个理想目标，众多研究从不同角度朝着这一目标展开探索。
