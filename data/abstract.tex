@@ -3,37 +3,41 @@
 % 中英文摘要和关键字
 
 \begin{abstract}
-  论文的摘要是对论文研究内容和成果的高度概括。
-  摘要应对论文所研究的问题及其研究目的进行描述，对研究方法和过程进行简单介绍，对研究成果和所得结论进行概括。
-  摘要应具有独立性和自明性，其内容应包含与论文全文同等量的主要信息。
-  使读者即使不阅读全文，通过摘要就能了解论文的总体内容和主要成果。
+大语言模型通过大规模预训练和高质量数据微调获得了极高的通用性和专业性，成为当前迈向通用人工智能的最有潜力的路线。大语言模型的智能提升遵循扩展定律，这表明其性能随训练资源增加而提高。因此人类资源的有限性成为制约大语言模型智能发展的核心瓶颈之一。本文致力于减少大语言模型训练过程中的资源消耗，从而促进模型规模的进一步发展。具体而言，本文研究了大语言模型训练过程中两个主要阶段——预训练阶段和微调阶段——各自面临的资源挑战。本文认为不可预测性导致预训练反复调优，进而浪费了大量资源。而高质量数据消耗量大和微调参数冗余度高导致了微调的资源浪费。因此，本文提出了可预测预训练和低资源微调两个研究目标，并探讨了以下四个方面的内容：
 
-  论文摘要的书写应力求精确、简明。
-  切忌写成对论文书写内容进行提要的形式，尤其要避免“第 1 章……；第 2 章……；……”这种或类似的陈述方式。
+\textbf{面向可预测预训练的超参数扩展规律与性能扩展定律。} 本文首先研究了各种超参数在模型规模扩展过程中最优值的变化规律，使得其最优值在规模扩大过程中保持稳定或可预测，以便拟合精准的损失扩展定律。随后，本文在损失扩展定律基础上提出了性能扩展定律，指出常规的下游任务性能的增长是可预测的，并且性能预测准确率达99\%以上，避免了大规模预训练实验的反复试错。
 
-  关键词是为了文献标引工作、用以表示全文主要内容信息的单词或术语。
-  关键词不超过 5 个，每个关键词中间用分号分隔。
+\textbf{面向可预测预训练的可复用扩展定律与高效退火迭代。} 本文接着研究了在扩展定律拟合过程中的资源开销，针对扩展定律在数据维度不可复用的问题，提出了WSD学习率调度，通过复用稳定训练阶段的检查点大幅节省实验量。基于该调度，本文进一步提出了大模型的高效迭代方案。最终，本文训练了一个小规模语言模型，其性能超过了3倍参数量的大模型。
+
+\textbf{面向低资源微调的能力激发与知识激活。} 在微调方面，本文研究了如何利用预训练阶段的知识进行数据高效的下游任务适配。在以原理预训练数据分布外的错误前提问题为主题的研究中，本文发现只需要精标百条数据即可让模型学会反驳错误前提问题。本文还针对提示微调进行优化，通过引入知识库来激活预训练模型所具备的知识，让少样本提示微调的性能提高最多17\%，大幅降低所需样本量。
+
+\textbf{面向低资源微调的参数高效微调模块统一框架和自动化寻优。} 本文深入研究了参数高效微调方法面临的调优模块选择问题，提出了带门控的调优模块自动选择框架，并通过全局显式稀疏性控制实现调优模块自动选择，使得参数高效微调的调优参数进一步缩小至万分之一量级，将微调过程中的大模型副本存算压力大幅减小。
+
+总体而言，本文对大语言模型训练全流程提出了高效解决方法，这些方法有利于模型进一步进行规模扩展以实现更高的智能上限。与此同时本文的研究成果对包括模型训练机理、模型参数功能分区、模型涌现能力成因等方面都提供了新的见解。
+
 
   % 关键词用“英文逗号”分隔，输出时会自动处理为正确的分隔符
   \thusetup{
-    keywords = {关键词 1, 关键词 2, 关键词 3, 关键词 4, 关键词 5},
+    keywords = {大语言模型, 预训练, 扩展定律，参数高效微调, 提示学习},
   }
 \end{abstract}
 
-\begin{abstract*}
-  An abstract of a dissertation is a summary and extraction of research work and contributions.
-  Included in an abstract should be description of research topic and research objective, brief introduction to methodology and research process, and summary of conclusion and contributions of the research.
-  An abstract should be characterized by independence and clarity and carry identical information with the dissertation.
-  It should be such that the general idea and major contributions of the dissertation are conveyed without reading the dissertation.
+\begin{abstract*}  
+Large language models (LLMs) achieve remarkable generality and specialization through extensive pretraining and fine-tuning on high-quality data, making them one of the most promising routes toward artificial general intelligence. The development of LLMs follows the Scaling Law, which suggests that their performance improves with increased training resources. As such, the limited availability of human resources has become one of the core bottlenecks limiting the intelligent development of LLMs. This work aims to reduce the resource consumption during the training process of LLMs, thus promoting the further development of model scale. Specifically, this work addresses the resource challenges encountered in two main stages of LLMs: the pretraining phase and the fine-tuning phase. We argue that the unpredictability of pretraining leads to resource wastage due to iterative experiments, while the high consumption of high-quality data and redundancy in fine-tuning parameters result in waste during the fine-tuning process. Therefore, this paper proposes two research objectives: predictable pretraining and low-resource fine-tuning, and investigates the following four key areas:
 
-  An abstract should be concise and to the point.
-  It is a misunderstanding to make an abstract an outline of the dissertation and words “the first chapter”, “the second chapter” and the like should be avoided in the abstract.
-
-  Keywords are terms used in a dissertation for indexing, reflecting core information of the dissertation.
-  An abstract may contain a maximum of 5 keywords, with semi-colons used in between to separate one another.
+\textbf{Hyperparameter Scaling Laws and Performance Scaling Laws for Predictable Pretraining.} This paper first explores the scaling patterns of optimal hyperparameters during model scaling, aiming to ensure their stability or predictability as the scale increases, thus facilitating the fitting of accurate loss scaling laws. Building upon these loss scaling laws, we propose a performance scaling law, demonstrating that the growth of performance on typical downstream tasks is predictable, with an accuracy of over 99\%, thus eliminating the need for trial-and-error in large-scale pretraining experiments.
+  
+\textbf{Reusable Scaling Laws and Efficient Annealing Iterations for Predictable Pretraining.} Next, we investigate the resource overhead in fitting the scaling laws, particularly addressing the issue of non-reusability of the data dimensions in the scaling laws. We introduce WSD learning rate scheduler, which significantly reduces experimental cost by reusing checkpoints from stable training phases. Furthermore, we propose an efficient iteration scheme for LLMs based on this scheduling. Finally, we trained a small-scale language model with a performance surpassing that of a model with over three times the number of parameters, demonstrating the effectiveness of our approach.
+  
+\textbf{Capability and Knowledge Activation for Low-Resource Fine-Tuning.}
+In terms of fine-tuning, we examine how to leverage the knowledge from the pretraining phase for data-efficient adaptation to downstream tasks. In studies on addressing false premise questions beyond the pretraining data distribution, we found that only a few hundred labeled data points were necessary for the model to learn to refute false premise questions. Additionally, we optimized prompt-tuning by introducing a knowledge base to activate the knowledge embedded in the pretrained model, achieving up to a 17\% performance improvement in few-shot fine-tuning, significantly reducing the number of samples required.
+  
+\textbf{Unified Framework for Delta-tuning Modules and Automated Hyperparameter Optimization.} This paper delves into the challenges of optimizing Delta-tuning methods, proposing an automatic module selection framework with gating mechanisms. By implementing global explicit sparsity control, we enable automatic module selection, which reduces the fine-tuning parameters of delta-tuning by an order of magnitude, alleviating the computational burden of maintaining large model replicas during the fine-tuning process.
+  
+In conclusion, this paper presents efficient solutions for the entire training pipeline of LLMs, which are conducive to further scaling model sizes and the achievement of higher intelligence limits. Moreover, the findings contribute new insights into model training mechanisms, parameter functional partitioning, and the emergence of model capabilities.
 
   % Use comma as separator when inputting
   \thusetup{
-    keywords* = {keyword 1, keyword 2, keyword 3, keyword 4, keyword 5},
+    keywords* = {Large Language Models, Pretraining, Scaling Law, Delta-tuning, Prompt-tuning},
   }
 \end{abstract*}

@@ -1,12 +1,12 @@
 \chapter{少资源微调——少样本微调的能力激活与知识激活}
 
-前文讲述了大规模预训练过程中，使用可预测预训练技术能使训练变得高效。从本章开始，将讲述在微调方向的高效训练尝试。微调上的挑战包括数据上的高效挑战和存算资源上的高效挑战。在本章中，我将对少资源微调之一——少样本微调进行初步探索。我们提出预训练过的模型本身可以进行少样本学习，利用能力激活和知识激活技术可以更高效的激发模型预训练时获得的能力和知识，从而需要更少的样本来完成下游任务。
+前文讲述了大规模预训练过程中，使用可预测预训练技术能使训练变得高效。从本章开始，将讲述在微调方向的高效训练尝试。微调上的挑战包括数据上的高效挑战和存算资源上的高效挑战。本章将对少资源微调之一——少样本微调进行初步探索。本文提出预训练过的模型本身可以进行少样本学习，利用能力激活和知识激活技术可以更高效的激发模型预训练时获得的能力和知识，从而需要更少的样本来完成下游任务。本节中的预训练模型，指仅仅经过预训练阶段，未经过指令微调的模型。
 
 
 \section{基于能力激活的少资源微调初探}
 
 \subsection{背景}
-近年来，预训练语言模型~\cite{lewis-etal-2020-bart, han2021pretrained, raffel2020exploring, brown2020language} 在各种任务中取得了显著的性能提升，甚至在语言能力基准测试中超越了人类水平~\cite{wang-etal-2018-glue, wang2019superglue,srivastava2022beyond}。预训练语言模型的这种前所未有的能力为各种实际应用奠定了基础。例如，展现了一般世界知识和常识知识的预训练语言模型有潜力成为通用问答模型的核心组件~\cite{tafjord2021general,guu2020retrieval}。
+近年来，预训练语言模型~\cite{lewis-etal-2020-bart, han2021pretrained, raffel2020exploring, brown2020language} 在各种任务中取得了显著的性能提升，甚至在语言能力基准测试中超越了人类水平~\cite{wang-etal-2018-glue, wang2019superglue,srivastava2022beyond}。预训练语言模型的这种前所未有的能力为各种实际应用奠定了基础。例如，展现了一般世界知识和常识知识的预训练语言模型是后续成为通用问答模型的核心组件~\cite{tafjord2021general,guu2020retrieval}。
 
 \begin{figure}[!htpb]
     \centering
@@ -35,13 +35,13 @@
 
 然而，这些基于预训练语言模型的问答模型存在一个有趣的矛盾。一方面，它们在人类提出的正常问题上表现出色。例如，\textsc{UnifiedQA}~\cite{khashabi-etal-2020-unifiedqa} 在许多问答任务中达到了最先进的性能。\textsc{Macaw}~\cite{tafjord2021general} 能够进行多角度问答，并在 Challenge300 数据集~\cite{tafjord2021general} 中正确回答了 75\% 的问题。另一方面，它们在面对具有误导性的问题时表现脆弱（见表~\ref{tab:intro_example}）。例如，\textsc{Macaw} 在九个具有误导性的问题中仅正确回答了一个，而包括 GPT-3~\cite{brown2020language} 在内的其他模型则全部失败~\cite{tafjord2021general}。InstructGPT~\cite{ouyang2022training} 也报告称，其无法识别包含错误前提的指令。这些问题对人类来说很容易反驳，但对预训练语言模型却构成了不可忽视的障碍。
 
-如果没有仔细研究，这一矛盾很容易让人得出结论：预训练语言模型缺乏反驳这些问题所需的世界知识或常识知识。尽管预训练语言模型嵌入尽可能多的通用知识至关重要，但本文通过一项初步实验发现，预训练语言模型实际上已经具备了处理其失败的那些误导性问题所需的知识（见第~\ref{sec:pilot}节）。因此，本文假设当前预训练语言模型中的知识已经足以处理大部分具有误导性的问题，但这些知识尚未被激活。
+如果没有仔细研究，这一矛盾很容易让人得出结论：预训练语言模型缺乏反驳这些问题所需的世界知识或常识知识。尽管预训练语言模型嵌入尽可能多的通用知识至关重要，但本文通过实验发现，预训练语言模型实际上已经具备了处理其失败的那些误导性问题所需的知识（见第~\ref{sec:pilot}节）。因此，本文假设当前预训练语言模型中的知识已经足以处理大部分具有误导性的问题，但如何运用这些知识的能力尚未被激活。
 
-本文提出，可以使用高质量的人类标注数据来对预训练语言模型进行高效的激活。特别的，我们仔细研究了这些具有误导性的问题，这些问题对于预训练语言模型来说属于分布外测试数据，我们通过精心标注一个数据集进行激活，使预训练模型能够泛化都训练数据集之外的误导性问题上。
+本文提出，可以使用高质量的人类标注数据来对预训练语言模型进行高效的激活。特别的，本文仔细研究了这些具有误导性的问题，这些问题对于预训练语言模型来说属于分布外测试数据，本文通过精心标注一个数据集进行激活，使预训练模型能够泛化都训练数据集之外的误导性问题上。
 
 
 \subsection{预备知识}
-本节介绍了错误前提问题（FPQ）的定义，以及关于预训练语言模型在错误前提问题上的初步实验。
+本节介绍错误前提问题（FPQ）的定义，以及关于预训练语言模型在错误前提问题上的初步实验。
 
 \subsubsection{错误前提问题}
 在提问时，人类通常假设某些事实是提问者和回答者共同认可的前提。这些事实构成了问题的基础。例如，在问题“太阳有多少只眼睛？”中，问题的目标是眼睛的数量，其假设了“太阳有眼睛”这一事实的正确性。
@@ -50,14 +50,14 @@
 \begin{table}[]
     \centering
     \caption{不同模型在错误前提问题上的表现对比}
-    {
-        % \begin{tabular}{m{2.3cm}|m{1.2cm}|m{5.5cm}|m{1.3cm}|m{4cm}}
-            \begin{tabular}{c|c|c|c|c}
+    \scalebox{0.8}{
+        \begin{tabular}{m{2.3cm}|m{1.2cm}|m{5.5cm}|m{1.3cm}|m{4cm}}
+        %     \begin{tabular}{c|c|c|c|c}
         \toprule
           模型 & 参数量 & 生成答案 & 正确性 & 真实答案 \\
          \midrule
-        %  \multicolumn{4}{c}{\cellcolor[HTML]{EAEAEA} 老虎的蛋比鸡蛋大吗？} &\cellcolor[HTML]{EAEAEA} 老虎会下蛋吗？\\
-        \multicolumn{4}{c}{ 你最喜欢哪部中国经典，浮士德还是哈姆雷特？} &浮士德和哈姆雷特是中国经典吗？\\
+         \multicolumn{4}{c}{\cellcolor[HTML]{EAEAEA} 老虎的蛋比鸡蛋大吗？} &\cellcolor[HTML]{EAEAEA} 老虎会下蛋吗？\\
+        % \multicolumn{4}{c}{ 你最喜欢哪部中国经典，浮士德还是哈姆雷特？} &浮士德和哈姆雷特是中国经典吗？\\
          \midrule
           Bloom & 176B &  不，老虎的蛋比鸡蛋小... & \xmark & 老虎不会下蛋。\\
           OPT & 175B & 是的。 & \xmark & 不，老虎不会下蛋。老虎是哺乳动物。 \\
@@ -66,8 +66,8 @@
           \textsc{Macaw} & 11B & 是的。 & \xmark & 是的。\\ % lyf edit
           \textsc{Macaw}-FPQ & 11B & 老虎不会下蛋，鸡才会下蛋。 & \cmark & 老虎是肉食动物，不会下蛋。 \\ % lyf edit
         \midrule 
-        %  \multicolumn{4}{c}{\cellcolor[HTML]{EAEAEA} 你最喜欢哪部中国经典，浮士德还是哈姆雷特？} &\cellcolor[HTML]{EAEAEA} 浮士德和哈姆雷特是中国经典吗？\\
-        \multicolumn{4}{c}{你最喜欢哪部中国经典，浮士德还是哈姆雷特？} &浮士德和哈姆雷特是中国经典吗？\\
+         \multicolumn{4}{c}{\cellcolor[HTML]{EAEAEA} 你最喜欢哪部中国经典，浮士德还是哈姆雷特？} &\cellcolor[HTML]{EAEAEA} 浮士德和哈姆雷特是中国经典吗？\\
+        % \multicolumn{4}{c}{你最喜欢哪部中国经典，浮士德还是哈姆雷特？} &浮士德和哈姆雷特是中国经典吗？\\
          \midrule 
           Bloom & 176B &   我最喜欢浮士德。我喜欢哈姆雷特，但我最喜欢浮士德。 & \xmark &  不，它们不是。它们是西方经典...\\
           OPT & 175B & 我都喜欢。 & \xmark & 不是。 \\
@@ -99,7 +99,7 @@
 
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=0.8\linewidth]{fpqafigs/annotate.zh.pdf}
+    \includegraphics[width=0.7\linewidth]{fpqafigs/annotate.zh.pdf}
     \caption{FalseQA 的标注过程}
     \label{fig:annotateprocess}
 \end{figure}
@@ -217,7 +217,7 @@
 \begin{table}
 \centering
 \caption{错误前提问题的二分类结果}
-\resizebox{0.7\linewidth}{!}{
+\resizebox{0.5\linewidth}{!}{
     \begin{tabular}{l|c|c|c}
 \toprule
       \multicolumn{1}{>{\centering\arraybackslash}c|}{模型}   & 召回率 &  精确率 & 准确率 \\
@@ -249,7 +249,7 @@ T5-11B & \std{86.5}{1.7} &	\std{82.4}{1.0} &	\std{84.0}{1.1} \\
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.69\linewidth]{fpqafigs/exp2.zh.pdf}
+    \includegraphics[width=0.67\linewidth]{fpqafigs/exp2.zh.pdf}
     \caption{预训练模型在不同训练样本数量下对错误和正确前提问题的识别能力}
     \label{fig:scale}
 \end{figure}

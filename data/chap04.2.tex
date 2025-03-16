@@ -4,10 +4,10 @@
 \label{sec:trainingstrategy}
 通常，遵循指令的大语言模型的训练包含预训练阶段和监督微调（SFT）阶段~\citep{zhang2023instruction,wei2021finetuned}。在预训练阶段，数据由大规模无标签数据组成，而在监督微调阶段，高质量的有标签数据成为优化目标。
 
-鉴于在WSD学习率调度器的衰减阶段观察到的显著损失下降，本文假设在此阶段整合高质量的有标签数据具有双重优势：
+鉴于在WSD学习率调度器的退火阶段观察到的显著损失下降，本文假设在此阶段整合高质量的有标签数据具有双重优势：
 \begin{itemize}
     \item 除了在监督微调阶段，在退火阶段引入此类数据有助于模型进行更全面的学习。具体而言，相较于预训练数据分布，它能促使模型在针对监督微调数据分布时实现更显著的损失降低。这种方式与实际用户场景更为契合。
-    \item 与在整个预训练过程中均匀分布高质量数据不同，此方法通过集中处理数据并维持持续预训练来提升训练效果。如果本文不预先确定训练步数，在持续的预训练过程中重复使用小数据集可能会产生负面影响。
+    \item 相比于在整个预训练过程中均匀分布高质量数据，此方法通过集中处理数据并维持持续预训练来提升训练效果。如果本文不预先确定训练步数，在持续的预训练过程中重复使用小数据集可能会产生负面影响。
 \end{itemize}
 
 基于这两个假设，本文提出以下训练策略：在预训练阶段，仅使用大规模的粗质量预训练数据，这类数据丰富，且在提供更多计算资源时能够支持持续训练。在退火阶段，本文使用多样且高质量的、面向知识与能力的监督微调数据，并将其混入预训练数据中。
@@ -16,14 +16,14 @@
 为验证本文训练策略的优势，本文使用(A) 2.4B模型稳定阶段的中间检查点和(B) 1.2B模型稳定阶段的最后检查点进行对比实验。具体来说，本文比较以下几种情况：
 
 \begin{enumerate}
-    \item A-1：24亿参数模型，仅使用预训练数据进行衰减，随后进行40亿词元的监督微调。
-    \item A-2：24亿参数模型，使用上述混入预训练数据中的高质量无标签数据和监督微调数据进行衰减，随后也进行40亿词元的监督微调。
-    \item B-1：12亿参数模型，仅使用预训练数据进行衰减，随后进行60亿词元的监督微调。
-    \item B-2：12亿参数模型，仅使用预训练数据进行衰减，随后进行120亿词元的监督微调。
+    \item A-1：24亿参数模型，仅使用预训练数据进行退火，随后进行40亿词元的监督微调。
+    \item A-2：24亿参数模型，使用上述混入预训练数据中的高质量无标签数据和监督微调数据进行退火，随后也进行40亿词元的监督微调。
+    \item B-1：12亿参数模型，仅使用预训练数据进行退火，随后进行60亿词元的监督微调。
+    \item B-2：12亿参数模型，仅使用预训练数据进行退火，随后进行120亿词元的监督微调。
     \item B-3：12亿参数模型，使用上述混入预训练数据中的高质量数据 + 监督微调数据进行退火，随后也进行60亿词元的监督微调。 
 \end{enumerate}
 
-实验结果如表\ref{tab:dataexperiments}所示。本文可以看到，尽管A-2和A-1经历了相同的监督微调数据分布，但在衰减阶段添加监督微调数据提升了模型表现。B-2和B-3的比较表明，仅进行监督微调的不足并非源于监督微调阶段训练词元不足。 
+实验结果如表\ref{tab:dataexperiments}所示。本文可以看到，尽管A-2和A-1经历了相同的监督微调数据分布，但在退火阶段添加监督微调数据提升了模型表现。B-2和B-3的比较表明，仅进行监督微调的不足并非源于监督微调阶段训练词元不足。 
 
 \begin{table}[h]
 \centering
@@ -45,21 +45,21 @@ B-3 & \textbf{49.1}  & \textbf{46.8}  & \textbf{49.6} & 31.8  & \textbf{10.5}  &
 \label{tab:dataexperiments}
 \end{table}
 
-结果表明，在衰减阶段开始时引入高质量数据的益处远高于仅在监督微调阶段添加。因此，本文建议模型能力的专业化和增强应从衰减阶段开始。 
+结果表明，在退火阶段开始时引入高质量数据的益处远高于仅在监督微调阶段添加。因此，本文建议模型能力的专业化和增强应从退火阶段开始。 
 
 \subsection{MiniCPM}
 
 
 本节将介绍MiniCPM，这是一系列小规模语言模型，建立与高效退火迭代的结果上。MiniCPM主要基于两个模型构建，分别具有24亿和12亿非嵌入参数，在各自的20亿和10亿规模类别中表现卓越。MiniCPM还展现出与70亿-130亿参数规模的语言模型相当的能力，如Llama2-7B~\citep{touvron2023llama}、Mistral-7B~\citep{jiang2023mistral}、Gemma-7B~\citep{Banks2024Gemma}以及Llama-13B~\citep{touvron2023llama}等。
 
-此外，本文还介绍了MiniCPM家族，包括MiniCPM-DPO、MiniCPM-128K和MiniCPM-MoE。本文针对既定基准对MiniCPM家族进行了评估，彰显了它们作为小规模语言模型令人瞩目的能力：（1）基础模型超越了Mistral-7B和LLama-13B。（2）DPO模型在MTBench~\citep{zheng2024judging}上超越了zephyr-7B~\citep{tunstall2023zephyr}。（3）24亿参数的MiniCPM-128K模型的性能超越或与Yarn-Mistral-7B-128K~\citep{peng2023yarn}和ChatGLM3-6B-128K~\citep{du2021glm}等模型相当。（4）具有40亿激活参数的MiniCPM-MoE与Llama2-34B~\citep{touvron2023llama}不相上下。
+此外，本文还介绍了MiniCPM家族，包括MiniCPM-DPO、MiniCPM-128K和MiniCPM-MoE。本文针对既定基准对MiniCPM家族进行了评估，彰显了它们作为小规模语言模型令人瞩目的能力：（1）基础模型超越了Mistral-7B和LLama-13B。（2）直接偏好对齐（DPO）模型在MTBench~\citep{zheng2024judging}上超越了zephyr-7B~\citep{tunstall2023zephyr}。（3）24亿参数的MiniCPM-128K模型的性能超越或与Yarn-Mistral-7B-128K~\citep{peng2023yarn}和ChatGLM3-6B-128K~\citep{du2021glm}等模型相当。（4）具有40亿激活参数的MiniCPM-MoE与Llama2-34B~\citep{touvron2023llama}不相上下。
 
 总之，MiniCPM开启了小规模语言模型发展的新阶段，例证了小规模语言模型的潜在能力，并倡导以更科学、可持续的方式扩大大语言模型的规模。 
 
 
 
 \subsection{模型基本配置}
-在本节中，本文开始介绍融合了上述观察结果与技术的MiniCPM模型。总体列在表\ref{tab:model_configs}里。其中 N（十亿）、$d_m$、$d_{ff}$、$d_h$、$n_q$、$n_{kv}$、$L$、批量大小（百万）、词元数（T）分别代表模型的非嵌入参数数量、模型隐藏维度、前馈层瓶颈维度、注意力头维度、查询数量、键/值数量、层数、训练批量大小、总训练词元数。
+在本节中，本文开始介绍融合了上述观察结果与技术的MiniCPM模型。总体列在表\ref{tab:model_configs}里。其中 N（十亿）、$d_m$、$d_{ff}$、$d_h$、$n_q$、$n_{kv}$、$L$、批量大小（百万）、词元数（T）分别代表模型的非嵌入参数数量、模型隐藏维度、前馈层中间维度、注意力头维度、查询数量、键/值数量、层数、训练批量大小、总训练词元数。
 \label{sec:model}
 \begin{table}[htbp]
     \centering
@@ -110,7 +110,7 @@ B-3 & \textbf{49.1}  & \textbf{46.8}  & \textbf{49.6} & 31.8  & \textbf{10.5}  &
 
 \subsubsection{架构细节}
 
-\noindent\textbf{词表}：对于MiniCPM-2.4B，本文使用词表大小为122,753的分词器；对于MiniCPM-1.2B，使用词表大小为73,440的分词器。12亿参数模型采用较小词表有助于提升效率，且不会过多损害性能。分词器的详细信息见附录\ref{app:tokenizer}。包含嵌入参数后，总参数分别增加了3亿和2亿。 
+\noindent\textbf{词表}：对于MiniCPM-2.4B，本文使用词表大小为122,753的分词器；对于MiniCPM-1.2B，使用词表大小为73,440的分词器。12亿参数模型采用较小词表有助于提升效率，且不会过多损害性能。分词器的详细信息见表\ref{tab:compression_ratio}。包含嵌入参数后，总参数分别增加了3亿和2亿。 
 
 \noindent\textbf{共享输入-输出层}：对于小规模语言模型，嵌入会占用较大的参数空间。为减小模型参数规模，MiniCPM-2.4B和MiniCPM-1.2B都采用了嵌入共享技术。 
 % 对于24亿参数模型，得到的嵌入参数为$2304 \times 122753 = 0.28B$；对于12亿参数模型，约为$1536 \times  \sim 0.11B$。 
@@ -120,14 +120,14 @@ B-3 & \textbf{49.1}  & \textbf{46.8}  & \textbf{49.6} & 31.8  & \textbf{10.5}  &
 \noindent\textbf{组查询注意力}：本文在训练MiniCPM-2.4B时，对注意力层未做修改。而受~\cite{liu2024mobilellm}启发，本文在MiniCPM-1.2B中应用了组查询注意力（Group Query Attention）~\citep{ainslie-etal-2023-gqa}，以进一步减少参数数量。
 
 \subsubsection{训练阶段}
-MiniCPM基础模型的整体训练包括三个阶段：稳定训练阶段、衰减阶段、监督微调（SFT）阶段~\citep{zhang2023instruction,wei2021finetuned}。在整个训练过程中，本文使用Adam优化器~\citep{kingma2014adam}。 
+MiniCPM基础模型的整体训练包括三个阶段：稳定训练阶段、退火阶段、监督微调（SFT）阶段~\citep{zhang2023instruction,wei2021finetuned}。在整个训练过程中，本文使用Adam优化器~\citep{kingma2014adam}。 
 
-\textbf{稳定训练阶段}：本文使用了约1万亿的数据（数据分布见\ref{sec:appdatadistrbution}节），其中大部分数据来自公开数据集。本文采用在模型风洞实验中发现的最优配置，即WSD学习率调度器（WSD LRS），批量大小为393万，最大基础学习率为0.01。
+\textbf{稳定训练阶段}：本文使用了约1万亿词元的数据（数据分布见\ref{sec:appdatadistrbution}节），其中大部分数据来自公开数据集。本文采用在前文实验中发现的最优配置，即WSD学习率调度器（WSD LRS），批量大小为393万，最大基础学习率为0.01。
 
-\textbf{衰减阶段}：本文使用预训练数据和高质量监督微调（SFT）数据的混合数据。
+\textbf{退火阶段}：本文使用预训练数据和高质量监督微调（SFT）数据的混合数据。
 对于WSD调度器的具体退火形式，本文采用指数退火，即$f(s-T)=  0.5^{(s-S)/T}$，其中$T$设置为5000步（200亿词元）。
 
-\textbf{监督微调（SFT）阶段}：本文发现仍然有必要进行单独的监督微调阶段。本文使用与退火阶段类似的监督微调数据，但不包含预训练数据，并使用约60亿词元进行训练。监督微调的学习率与退火结束时的学习率一致，并且也采用带有指数衰减的WSD调度器。 
+\textbf{监督微调（SFT）阶段}：本文发现仍然有必要进行单独的监督微调阶段。本文使用与退火阶段类似的监督微调数据，但不包含预训练数据，并使用约60亿词元进行训练。监督微调的学习率与退火结束时的学习率一致，并且也采用带有指数退火的WSD调度器。 
 
 
 \subsubsection{训练数据分布}
@@ -137,41 +137,44 @@ MiniCPM基础模型的整体训练包括三个阶段：稳定训练阶段、衰�
     \centering
     \begin{minipage}{0.48\linewidth}
         \centering
-        \includegraphics[width=1.0\linewidth]{minicpmFig/stable_mixture.pdf}
+        \includegraphics[width=1.0\linewidth]{minicpmFig/stable_mixture.zh.pdf}
     \end{minipage}
     \hfill 
     \begin{minipage}{0.48\linewidth}
         \centering
-        \includegraphics[width=1.0\linewidth]{minicpmFig/decay_data_mixture.pdf}
+        \includegraphics[width=1.0\linewidth]{minicpmFig/decay_data_mixture.zh.pdf}
     \end{minipage}
-    \caption{稳定阶段（左）、衰减阶段（右）的数据混合情况}
+    \caption{稳定阶段（左）、退火阶段（右）的数据混合情况}
         \label{fig:appdatamixture}
 \end{figure}
-\improvement{翻译上图}
+% \improvement{翻译上图}
 
-本文在图\ref{fig:appdatamixture}中介绍训练数据的分布。在图中，CommonCrawl\_Chn是一个中文语料库，源自CommonCrawl原始语料库并经过了全面清理。Dolma~\citep{dolma}、C4~\citep{2019t5}和Pile~\citep{gao2020pile, biderman2022datasheet}是英文语料库。这些语料库内部以及相互之间都使用MinHash算法~\citep{broder1997resemblance}进行了去重。代码预训练数据包含stack~\citep{Kocetkov2022TheStack}和StarCoder~\cite{li2023starcoder}，并进行了内部去重和交叉去重。在衰减阶段，混合数据包含更多样化的数据和专有数据，包括UltraChat~\citep{ding2023enhancing}、SlimOrca~\citep{SlimOrca, SlimOrcaDedup}、OssInstruct~\citep{wei2023magicoder}、EvolInstruct~\citep{xu2023wizardlm}。后缀为SFT的数据是本文的专有数据，包括力扣（LeetCode）题目、幼儿园到12年级（K12）的教科书及题目等。 
+本文在图\ref{fig:appdatamixture}中介绍训练数据的分布。在图中，CommonCrawl\_Chn是一个中文语料库，源自CommonCrawl原始语料库并经过了全面清理。Dolma~\citep{dolma}、C4~\citep{2019t5}和Pile~\citep{gao2020pile, biderman2022datasheet}是英文语料库。这些语料库内部以及相互之间都使用MinHash算法~\citep{broder1997resemblance}进行了去重。代码预训练数据包含stack~\citep{Kocetkov2022TheStack}和StarCoder~\cite{li2023starcoder}，并进行了内部去重和交叉去重。在退火阶段，混合数据包含更多样化的数据和专有数据，包括UltraChat~\citep{ding2023enhancing}、SlimOrca~\citep{SlimOrca, SlimOrcaDedup}、OssInstruct~\citep{wei2023magicoder}、EvolInstruct~\citep{xu2023wizardlm}。后缀为SFT的数据是本文的专有数据，包括力扣（LeetCode）题目、幼儿园到12年级（K12）的教科书及题目等。 
 
 
 \subsubsection{训练损失}
 
 \definecolor{darkgreen}{HTML}{476E6B}
 
-在C4数据集上的整体训练损失如图\ref{fig:loss_c4}所示。损失曲线尾部的\textcolor{orange}{橙色}线段表示剩余的衰减过程，MiniCPM发布版本中未使用该部分。可以看到，正如前期实验所预期的那样，损失在衰减阶段急剧下降。由于本文使用的是指数衰减，在学习率降至最大学习率的10\%以下后，损失仍在下降。然而，因为在衰减阶段之后本文会继续对模型进行监督微调（SFT），所以本文不会使用最终的检查点。本文进行微调所基于的检查点显示在\textcolor{darkgreen}{深绿色}线段的最后一个检查点处。MiniCPM-1.2B中的首次损失下降是增大批量大小的结果，这可能与降低学习率有类似的效果\cite{smith2017don}。
+在C4数据集上的整体训练损失如图\ref{fig:loss_c4}所示。损失曲线尾部的\textcolor{orange}{橙色}线段表示剩余的退火过程，MiniCPM发布版本中未使用该部分。可以看到，正如前期实验所预期的那样，损失在退火阶段急剧下降。由于本文使用的是指数退火，在学习率降至最大学习率的10\%以下后，损失仍在下降。然而，因为在退火阶段之后本文会继续对模型进行监督微调，所以本文不会使用最终的检查点。本文进行微调所基于的检查点显示在\textcolor{darkgreen}{深绿色}线段的最后一个检查点处。MiniCPM-1.2B中的首次损失下降是增大批量大小的结果，这可能与降低学习率有类似的效果\cite{smith2017don}。
 
 \definecolor{orange}{HTML}{FFA500}
 
 \begin{figure}[htbp]
-    \begin{minipage}{\linewidth}
-    % 第一个子图的minipage
     \centering
-        \includegraphics[width=0.8\linewidth]{minicpmFig/1.2B_c4_loss_smoothed.zh.pdf}
-    % 第二个子图的minipage
-    \end{minipage}
-    \begin{minipage}{\linewidth}
-    \centering
-    \includegraphics[width=0.8\linewidth]{minicpmFig/2.4B_c4_loss_smoothed.zh.pdf}
-    \end{minipage}
-    \caption{1.2B（上）和2.4B（下）MiniCPM在C4数据集上的损失曲线}
+    \caption{1.2B（上）和 2.4B（下）MiniCPM 在 C4 数据集上的损失曲线}
+    \begin{subfigure}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{minicpmFig/1.2B_c4_loss_smoothed.zh.pdf}
+        \subcaption{1.2B MiniCPM 在 C4 数据集上的损失曲线}
+        \label{fig:loss_c4_1.2B}
+    \end{subfigure}
+    \begin{subfigure}{0.48\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{minicpmFig/2.4B_c4_loss_smoothed.zh.pdf}
+        \subcaption{2.4B MiniCPM 在 C4 数据集上的损失曲线}
+        \label{fig:loss_c4_2.4B}
+    \end{subfigure}
     \label{fig:loss_c4}
 \end{figure}
 
@@ -190,7 +193,7 @@ MiniCPM基础模型的整体训练包括三个阶段：稳定训练阶段、衰�
 
 \begin{table}[!htbp]
     \centering
-\scalebox{0.80}{
+\scalebox{0.85}{
     \begin{tabular}{lm{1.2cm}m{1.2cm}m{1.2cm}m{1.7cm}m{1.2cm}m{1.2cm}m{1.2cm}m{1.2cm}}
 \toprule
 \textbf{Model} & \textbf{C-Eval} & \textbf{CMMLU} & \textbf{MMLU} & \textbf{HumanEval} & \textbf{MBPP} & \textbf{GSM8K} & \textbf{MATH}\\
@@ -217,7 +220,7 @@ Gemma-2B & 29.26 & 28.56 & 38.49 & 24.39 & 29.74 & 16.83 & 3.34\\
 \bottomrule
 \end{tabular}
 }
-\scalebox{0.90}{
+\scalebox{0.85}{
  \begin{tabular}{lm{1.2cm}m{1.2cm}m{1.2cm}m{1.7cm}m{1.2cm}m{1.2cm}m{1.2cm}m{1.2cm}}
 \textbf{Model}  & \textbf{BBH} &\textbf{ARC-e} & \textbf{ARC-c} & \textbf{HellaSwag} & \textbf{Avg} & \textbf{Avg$_{\text{en}}$} & \textbf{Avg$_{\text{chn}}$} \\
 \midrule
@@ -249,14 +252,13 @@ Gemma-2B  & 30.93 & 74.33 & 40.70 & 69.51 & 35.10 & 36.47 & 28.91\\
 
 \subsubsection{对齐人类偏好}
 \label{app:rlhf}
-在监督微调（SFT）之后，本文采用直接偏好优化（DPO）~\citep{rafailov2024direct}方法使模型与人类偏好对齐。在此阶段，UltraFeedback~\citep{cui2023ultrafeedback}被用作主要的对齐数据集，同时构建了一个专有偏好数据集，以提升模型在代码和数学方面的能力。由于本文有预定义的训练步数，所以使用余弦退火学习率调度器（Cosine LRS），以$1\times 10^{-5}$的学习率进行一轮DPO训练。
+在监督微调之后，本文采用直接偏好优化（DPO）~\citep{rafailov2024direct}方法使模型与人类偏好对齐。在此阶段，UltraFeedback~\citep{cui2023ultrafeedback}被用作主要的对齐数据集，同时构建了一个专有偏好数据集，以提升模型在代码和数学方面的能力。由于该阶段有预定义的训练步数，所以使用余弦退火学习率调度器（Cosine LRS），以$1\times 10^{-5}$的学习率进行一轮DPO训练。
 
 应用DPO进行偏好对齐后，模型在MTBench~\citep{zheng2024judging}上的得分从监督微调后的6.89提升到了7.25，甚至超过了像Llama2-70B-Chat这样的大模型（见图\ref{fig:mtbenchscore}）。然而，本文也注意到，模型在基准测试中的性能略有下降，这就是所谓的对齐税（alignment tax）~\citep{askell2021general}。
 
 \begin{table}[htbp]
     \centering
-\scalebox{0.87}{
-
+\scalebox{0.85}{
 \begin{tabular}{lccccccccc}
 \toprule
 \textbf{模型} & \textbf{C-Eval} & \textbf{CMMLU} & \textbf{MMLU} & \textbf{HumanEval} & \textbf{MBPP} & \textbf{GSM8K} & \textbf{MATH}\\
@@ -275,7 +277,7 @@ Llama2-7B-Chat & 34.54 & 32.64 & 47.64 & 14.02 & 27.40 & 21.15 & 2.08 \\
 \end{tabular}
 }
 
-\scalebox{0.88}{
+\scalebox{0.87}{
 \begin{tabular}{lccccccc}
 \toprule
 \textbf{模型}  & \textbf{BBH} &\textbf{ ARC-e} & \textbf{ARC-c} & \textbf{HellaSwag} & \textbf{平均} & \textbf{英文平均} & \textbf{中文平均}  \\
@@ -312,7 +314,7 @@ Llama2-7B-Chat  & 35.54 & 74.28 & 54.78 & 75.65$^{\dag}$ & 38.16 & 39.17 & 33.59
 涉及长文本上下文的任务依赖于这些上下文中的隐含信息，从而避免了对小规模语言模型通常缺乏的广泛知识的需求。在本节中，本文将MiniCPM-2.4B的上下文长度从4096个词元扩展到128000个词元，以展示小规模语言模型有效处理长文本上下文的能力。
 
 \textbf{初始化}：
-在初始化时，本文禁用了输入和输出之间的嵌入共享，这主要是为了适应长文本上下文训练所必需的词汇并行性。语言模型头模块从输入嵌入进行初始化。
+在初始化时，本文禁用了输入和输出之间的嵌入共享，这主要是为了适应长文本上下文训练所必需的词汇并行（Vocab Parallel）。语言模型头模块从输入嵌入进行初始化。
 
 \textbf{训练}：
 MiniCPM-2.4B-128K使用WSD作为其学习率调度器，并复用MiniCPM-2.4B稳定训练阶段的最后一个检查点。关于训练数据，本文将\ref{sec:appdatadistrbution}节中详细介绍的数据集分布分为“短数据”和“长数据”。本文将书籍、维基百科文章和论文归类为“长数据”，其他数据归类为“短数据”。训练过程中，44\%为长数据，56\%为短数据，以进行持续训练。对于长文本上下文的扩展，在4K到32K的范围本文应用调整后的基本频率（ABF）~\citep{xiong2023effective}，在32K到128K的范围采用NTK感知旋转位置嵌入（RoPE）扩展~\citep{bloc97_2023_ntk}和课程学习。这两个阶段都涉及未来训练。此外，正如Yi技术报告~\citep{young2024yi}和Zebra模型~\citep{song2023zebra}所指出的，本文使用合成的长问答数据，这显著提升了模型在上下文感知任务中的性能。
@@ -361,14 +363,14 @@ MiniCPM-2.4B-128K使用WSD作为其学习率调度器，并复用MiniCPM-2.4B稳
 本文进一步利用混合专家（Mixture-of-Expert，简称MoE）方法扩展MiniCPM的能力。
 
 \textbf{初始化}：
-MiniCPM-MoE使用稀疏升级（Sparse Upcycling）~\citep{komatsuzaki2022sparse}进行初始化。从MiniCPM稳定阶段得到的密集模型检查点会经历一个转换过程，其中每个多层感知机（MLP）层被一个混合专家（MoE）层替代。这些新的MoE层与密集检查点中的原始MLP层完全相同。路由器参数按照均值为0、方差为0.01的正态分布随机初始化。
+MiniCPM-MoE使用稀疏升级（Sparse Upcycling）~\citep{komatsuzaki2022sparse}进行初始化。从MiniCPM稳定阶段得到的稠密模型检查点会经历一个转换过程，其中每个前馈网络层被一个混合专家（MoE）层替代。这些新的MoE层与稠密检查点中的原始MLP层完全相同。路由器参数按照均值为0、方差为0.01的正态分布随机初始化。
 
 \textbf{路由机制}：
 MiniCPM-MoE的非嵌入参数总数为136亿。
 在训练和推理过程中，每个词元会激活八个专家中的两个，这使得激活参数的数量约为40亿。为防止训练崩溃，在最终训练目标中加入了额外的负载均衡损失（load balancing loss）~\citep{fedus2022switch}。这个辅助损失乘以0.01，该值足够大，以确保分配给不同专家的词元能够均衡分布。
 
 \textbf{训练}：
-采用WSD作为学习率调度器。关于训练数据，本文严格遵循\ref{sec:appdatadistrbution}节中指定的分布。在稳定训练和衰减阶段，训练批量大小保持在400万个词元，在监督微调（SFT）阶段减少到200万个词元。预训练阶段（包括持续预训练和衰减阶段）跨越130000步，之后本文注意到提升逐渐减小。基准测试结果详见表\ref{tab:a4_moe_benchmark}。$^\dag$表示MBPP的评估结果基于完整数据集，而非人工验证集~\citep{austin2021program}。Llama2-34B和Qwen1.5-7B的评估结果取自其技术报告。
+采用WSD作为学习率调度器。关于训练数据，本文严格遵循\ref{sec:appdatadistrbution}节中指定的分布。在稳定训练和退火阶段，训练批量大小保持在400万个词元，在监督微调（SFT）阶段减少到200万个词元。预训练阶段（包括持续预训练和退火阶段）跨越130000步，之后本文注意到提升逐渐减小。基准测试结果详见表\ref{tab:a4_moe_benchmark}。$^\dag$表示MBPP的评估结果基于完整数据集，而非人工验证集~\citep{austin2021program}。Llama2-34B和Qwen1.5-7B的评估结果取自其技术报告。
 
 \begin{table}[htbp]
     \centering
@@ -399,7 +401,7 @@ MiniCPM系列与微软的Phi~\citep{li2023textbooks}等其他强大的小规模�
 
 \begin{figure}[!h]
     \centering
-    \scalebox{0.95}{
+    \scalebox{0.9}{
     \begin{AIbox}{Math and Reasoning}
     {\bf Prompt:} 
     {\scriptsize
@@ -429,38 +431,38 @@ MiniCPM系列与微软的Phi~\citep{li2023textbooks}等其他强大的小规模�
     \label{fig:math}
     \end{figure}
     
-    \begin{figure}[!b]
+    % \begin{figure}[!b]
+    % \centering
+    % \scalebox{0.9}{
+    % \begin{AIbox}{Instruction Following}
+    % {\bf Prompt:} 
+    % {\scriptsize
+    % {写藏头诗，藏头是龙年大吉
+    % }}\\\ \\
+    % \parbox[t]{0.49\linewidth}{{\bf MiniCPM-1.2B:}\\
+    % \scriptsize
+    % {龙池春水涨，\\凤阙日初长。\\吉庆何时至，\\太平有象藏。}
+    % }
+    % \hspace{0.02\linewidth}%
+    % \parbox[t]{0.49\linewidth}{{\bf MiniCPM-2.4B-DPO:} \\
+    % \scriptsize
+    % {龙腾万里气如虹，\\
+    % 年岁新来乐事浓。\\
+    % 大吉良辰堪共赏，\\
+    % 吉祥如意笑颜红。} 
+    % }
+    % \hspace{0.01\linewidth}
+    % \end{AIbox}
+    % }
+    % \caption{指令遵循的样例}
+    % \label{fig:instruction}
+    % \end{figure}
+    
+    % \vspace{-3mm}
+    
+    \begin{figure}[hbp]
     \centering
-    \scalebox{0.95}{
-    \begin{AIbox}{Instruction Following}
-    {\bf Prompt:} 
-    {\scriptsize
-    {写藏头诗，藏头是龙年大吉
-    }}\\\ \\
-    \parbox[t]{0.49\linewidth}{{\bf MiniCPM-1.2B:}\\
-    \scriptsize
-    {龙池春水涨，\\凤阙日初长。\\吉庆何时至，\\太平有象藏。}
-    }
-    \hspace{0.02\linewidth}%
-    \parbox[t]{0.49\linewidth}{{\bf MiniCPM-2.4B-DPO:} \\
-    \scriptsize
-    {龙腾万里气如虹，\\
-    年岁新来乐事浓。\\
-    大吉良辰堪共赏，\\
-    吉祥如意笑颜红。} 
-    }
-    \hspace{0.01\linewidth}
-    \end{AIbox}
-    }
-    \caption{指令遵循的样例}
-    \label{fig:instruction}
-    \end{figure}
-    
-    
-    
-    \begin{figure}[]
-    \centering
-    \scalebox{0.95}{
+    \scalebox{0.9}{
     \begin{AIbox}{Emoji}
     {\bf Prompt:} 
     {\scriptsize
@@ -510,4 +512,6 @@ MiniCPM系列与微软的Phi~\citep{li2023textbooks}等其他强大的小规模�
 
 
 \section{本章小结}
-本章在上一章的可预测技术基础上，进一步研究了如何高效测量扩展定律，提出了WSD学习率调度器，并基于该调度器实现了三点突破。1. 在预训练token数量未预先定义的情况下进行连续训练而设计，使得模型中间检查点的重用极具可行性。2. 使得本文能够以在模型轴上的线性工作量和在数据轴上的可忽略工作量来研究数据-模型扩展定律，而传统方法在考虑模型和数据轴的扩展时需要二次工作量。3. 使得本文可以进行高效的退火迭代实验和拓展实验。除此之外本文还对WSD学习率调度器的训练动态进行了详细分析，结果表明WSD调度器展现了模型预训练中有趣的损失景观。基于前两章的技术，本章训练了一个小规模语言模型MiniCPM-2.4B，并在多个基准测试中取得了优异的结果。
+本章在上一章的超参和性能可预测技术基础上，进一步研究了如何高效测量扩展定律，提出了WSD学习率调度器，并基于该调度器实现了三点突破。1. 在预训练token数量未预先定义的情况下进行连续训练，使得模型中间检查点的重用极具可行性。2. 使得本文能够以在模型轴上的线性开销和在数据轴上的可忽略开销来研究数据-模型扩展定律，而传统方法在考虑模型和数据轴的扩展时都需要线性开销。3. 使得本文可以进行高效的退火迭代实验和拓展实验。除此之外本文还对WSD学习率调度器的训练动态进行了详细分析，结果表明WSD调度器展现了模型预训练中有趣的损失景观。
+
+基于前两章的技术，本章训练了一个小规模语言模型MiniCPM-2.4B，并在多个基准测试中取得了优异的结果。
