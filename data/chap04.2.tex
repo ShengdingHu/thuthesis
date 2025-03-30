@@ -50,7 +50,7 @@ B-3 & \textbf{49.1}  & \textbf{46.8}  & \textbf{49.6} & 31.8  & \textbf{10.5}  &
 \subsection{MiniCPM}
 
 
-本节将介绍MiniCPM，这是一系列小规模语言模型，建立与高效退火迭代的结果上。MiniCPM主要基于两个模型构建，分别具有24亿和12亿非嵌入参数，在各自的20亿和10亿规模类别中表现卓越。MiniCPM还展现出与70亿-130亿参数规模的语言模型相当的能力，如Llama2-7B~\citep{touvron2023llama}、Mistral-7B~\citep{jiang2023mistral}、Gemma-7B~\citep{Banks2024Gemma}以及Llama-13B~\citep{touvron2023llama}等。
+本节将介绍MiniCPM，这是一系列基于高效退火迭代的小规模语言模型。MiniCPM主要基于两个模型构建，分别具有24亿和12亿非嵌入参数，在各自的20亿和10亿规模类别中表现卓越。MiniCPM还展现出与70亿-130亿参数规模的语言模型相当的能力，如Llama2-7B~\citep{touvron2023llama}、Mistral-7B~\citep{jiang2023mistral}、Gemma-7B~\citep{Banks2024Gemma}以及Llama-13B~\citep{touvron2023llama}等。
 
 此外，本文还介绍了MiniCPM家族，包括MiniCPM-DPO、MiniCPM-128K和MiniCPM-MoE。本文针对既定基准对MiniCPM家族进行了评估，彰显了它们作为小规模语言模型令人瞩目的能力：（1）基础模型超越了Mistral-7B和LLama-13B。（2）直接偏好对齐（DPO）模型在MTBench~\citep{zheng2024judging}上超越了zephyr-7B~\citep{tunstall2023zephyr}。（3）24亿参数的MiniCPM-128K模型的性能超越或与Yarn-Mistral-7B-128K~\citep{peng2023yarn}和ChatGLM3-6B-128K~\citep{du2021glm}等模型相当。（4）具有40亿激活参数的MiniCPM-MoE与Llama2-34B~\citep{touvron2023llama}不相上下。
 
@@ -269,7 +269,7 @@ Mistral-7B-Instruct-v0.2 & 42.55 & 41.92 & 60.51 & 36.59 & 48.95 & 40.49 & 4.95 
 Qwen-7B-Chat & 58.57 & 57.23 & 56.03 & 15.85 & 40.52 & 42.23 & 8.3\\
 Yi-6B-Chat & 70.88 & 71.11 & 62.95 & 14.02 & 28.34 & 36.54 & 3.88\\
 Baichuan2-7B-Chat & 53.28 & 53.50 & 53.00 & 21.34 & 32.32 & 25.25 & 6.32\\
-Deepseek-7B-chat & 46.95 & 49.72 & 51.67 & 40.85 & 48.48 & 48.52 & 4.26 \\
+Deepseek-7B-Chat & 46.95 & 49.72 & 51.67 & 40.85 & 48.48 & 48.52 & 4.26 \\
 Llama2-7B-Chat & 34.54 & 32.64 & 47.64 & 14.02 & 27.40 & 21.15 & 2.08 \\
 \midrule
 \textbf{MiniCPM-2.4B-DPO}  & 48.64 & 48.37 & 53.05 & 51.22 & 48.01 & 53.37 & 9.86\\
@@ -288,7 +288,7 @@ Mistral-7B-Instruct-v0.2  & 39.81 & 86.28 & 73.38 & 84.55$^{\dag}$ & 50.91 & 52.
 Qwen-7B-Chat  & 37.34 & 64.44$^{\dag}$ & 39.25$^{\dag}$ & 74.52$^{\dag}$ & 44.93 & 42.05 & 57.90 \\
 Yi-6B-Chat  & 37.43 & 84.89 & 70.39 & 74.60$^{\dag}$ & 50.46 & 45.89 & 71.00 \\
 Baichuan2-7B-Chat  & 37.46 & 79.63 & 60.15 & 69.23$^{\dag}$ & 44.68 & 42.74 & 53.39 \\
-Deepseek-7B-chat  & 35.70 & 76.85 & 63.05 & 76.68$^{\dag}$ & 49.34 & 49.56 & 48.34 \\
+Deepseek-7B-Chat  & 35.70 & 76.85 & 63.05 & 76.68$^{\dag}$ & 49.34 & 49.56 & 48.34 \\
 Llama2-7B-Chat  & 35.54 & 74.28 & 54.78 & 75.65$^{\dag}$ & 38.16 & 39.17 & 33.59 \\
 \midrule
 \textbf{MiniCPM-2.4B-DPO}  & 36.22 & 85.02 & 68.17 & 65.67 & 51.60 & 52.29 & 48.51 \\
@@ -317,7 +317,7 @@ Llama2-7B-Chat  & 35.54 & 74.28 & 54.78 & 75.65$^{\dag}$ & 38.16 & 39.17 & 33.59
 在初始化时，本文禁用了输入和输出之间的嵌入共享，这主要是为了适应长文本上下文训练所必需的词汇并行（Vocab Parallel）。语言模型头模块从输入嵌入进行初始化。
 
 \textbf{训练}：
-MiniCPM-2.4B-128K使用WSD作为其学习率调度器，并复用MiniCPM-2.4B稳定训练阶段的最后一个检查点。关于训练数据，本文将\ref{sec:appdatadistrbution}节中详细介绍的数据集分布分为“短数据”和“长数据”。本文将书籍、维基百科文章和论文归类为“长数据”，其他数据归类为“短数据”。训练过程中，44\%为长数据，56\%为短数据，以进行持续训练。对于长文本上下文的扩展，在4K到32K的范围本文应用调整后的基本频率（ABF）~\citep{xiong2023effective}，在32K到128K的范围采用NTK感知旋转位置嵌入（RoPE）扩展~\citep{bloc97_2023_ntk}和课程学习。这两个阶段都涉及未来训练。此外，正如Yi技术报告~\citep{young2024yi}和Zebra模型~\citep{song2023zebra}所指出的，本文使用合成的长问答数据，这显著提升了模型在上下文感知任务中的性能。
+MiniCPM-2.4B-128K使用WSD作为其学习率调度器，并复用MiniCPM-2.4B稳定训练阶段的最后一个检查点。关于训练数据，本文将\ref{sec:appdatadistrbution}节中详细介绍的数据集分布分为“短数据”和“长数据”。本文将书籍、维基百科文章和论文归类为“长数据”，其他数据归类为“短数据”。训练过程中，44\%为长数据，56\%为短数据，以进行持续训练。对于长文本上下文的扩展，在4K到32K的范围本文应用调整后的基本频率（ABF）~\citep{xiong2023effective}，在32K到128K的范围采用NTK感知旋转位置嵌入（RoPE）扩展~\citep{bloc97_2023_ntk}和课程学习。这两个阶段都涉及继续训练。此外，正如Yi技术报告~\citep{young2024yi}和Zebra模型~\citep{song2023zebra}所指出的，本文使用合成的长问答数据，这显著提升了模型在上下文感知任务中的性能。
 
 \textbf{评估}：本文在$\infty$Bench~\citep{zhang2024infty}中对MiniCPM-2.4B-128K进行评估，$\infty$Bench是一个用于长文本上下文评估的开创性基准测试。$\infty$Bench~\citep{zhang2024infty}中的任务超越了典型的检索任务，通过长文本上下文推理对模型提出挑战。从表\ref{tab:longcontext}中可以看到，本文取得了与Mistral-7B-Instruct-v0.2（ABF1000w）相当的结果，并且尽管规模小2.5倍，但性能优于ChatGLM3-6B-128K。 
 
@@ -488,7 +488,7 @@ MiniCPM系列与微软的Phi~\citep{li2023textbooks}等其他强大的小规模�
     \hspace{0.02\linewidth}%
     \parbox[t]{0.49\linewidth}{{\bf MiniCPM-2.4B-DPO:} \\
     \scriptsize
-    {当然可以！以下是一个包含10个emoi及其对应意义的JSON对象：\\
+    {当然可以！以下是一个包含10个emoji及其对应意义的JSON对象：\\
     \{\\
     "\includegraphics[height=10pt]{minicpmFig/smiling-face-with-smiling-eyes_1f60a.png}": "表示愉快或满意，通常用于表达微笑和喜悦。", \\
     "\includegraphics[height=10pt]{minicpmFig/pouting-face_1f621.png}": "表示愤怒或不满，通常用于表达情绪的激动。", \\
@@ -497,7 +497,7 @@ MiniCPM系列与微软的Phi~\citep{li2023textbooks}等其他强大的小规模�
     "\includegraphics[height=10pt]{minicpmFig/exploding-head_1f92f.png}": "表示惊讶或震惊，通常用于表达对某个事件或情況的强烈反应。",\\
     "\includegraphics[height=10pt]{minicpmFig/pensive-face_1f614.png}": "表示失望或沮丧，通常用于表达对某事或某人失去兴趣或信心的情绪。", \\
     "\includegraphics[height=10pt]{minicpmFig/broken-heart_1f494.png}":"表示心痛或伤心，通常用于表达对某事或某人造成痛苦的强烈感受。", \\
-    "\includegraphics[height=10pt]{minicpmFig/light-bulb_1f4a1.png}": "表示惊喜或兴奋，通常用于表达对某事或某人的发现或发现的情绪。",\\
+    "\includegraphics[height=10pt]{minicpmFig/light-bulb_1f4a1.png}": "表示惊喜或兴奋，通常用于表达对某事或某人的发现的情绪。",\\
     "\includegraphics[height=10pt]{minicpmFig/smiling-face-with-smiling-eyes_1f60a.png}": "表示酷或时髦，通常用于表达自信、独立和潮流的态度。",\\
     "\includegraphics[height=10pt]{minicpmFig/smiling-face-with-heart-eyes_1f60d.png}": "表示喜欢或欣赏，通常用于表达对某物或某人的喜爱之情。"\\
     \} \\
@@ -512,6 +512,6 @@ MiniCPM系列与微软的Phi~\citep{li2023textbooks}等其他强大的小规模�
 
 
 \section{本章小结}
-本章在上一章的超参和性能可预测技术基础上，进一步研究了如何高效测量扩展定律，提出了WSD学习率调度器，并基于该调度器实现了三点突破。1. 在预训练token数量未预先定义的情况下进行连续训练，使得模型中间检查点的重用极具可行性。2. 使得本文能够以在模型轴上的线性开销和在数据轴上的可忽略开销来研究数据-模型扩展定律，而传统方法在考虑模型和数据轴的扩展时都需要线性开销。3. 使得本文可以进行高效的退火迭代实验和拓展实验。除此之外本文还对WSD学习率调度器的训练动态进行了详细分析，结果表明WSD调度器展现了模型预训练中有趣的损失景观。
+本章在上一章的超参和性能可预测技术基础上，进一步研究了如何高效测量扩展定律，提出了WSD学习率调度器，并基于该调度器实现了三点突破。1. 在预训练token数量未预先定义的情况下进行连续训练，使得模型中间检查点的重用极具可行性。2. 使得本文能够以模型轴上的线性开销和数据轴上的可忽略开销来研究数据-模型扩展定律，而传统方法在考虑模型和数据轴的扩展时都需要线性开销。3. 使得本文可以进行高效的退火迭代实验和拓展实验。除此之外，本文还对WSD学习率调度器的训练动态进行了详细分析，结果表明WSD调度器展现了模型预训练中有趣的损失景观。
 
 基于前两章的技术，本章训练了一个小规模语言模型MiniCPM-2.4B，并在多个基准测试中取得了优异的结果。

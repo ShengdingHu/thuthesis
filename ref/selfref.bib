@@ -1,0 +1,432 @@
+
+% hu2024minicpm, hu2024predicting, hu-etal-2023-wont,hu-etal-2022-knowledgeable, NEURIPS2022_4027fc45, hu-etal-2023-opendelta,NEURIPS2020_73740ea8,huang2024unified,ding-etal-2022-openprompt,zhou-etal-2021-kacc,zhang-etal-2024-bench,zhao-etal-2024-decoratelm,luo2025a,zhang-etal-2024-beyond,he-etal-2024-ultraeval,he-etal-2024-olympiadbench,song-etal-2025-prosparse,ZHOU202057,cheng-etal-2024-legent,cui-etal-2022-prototypical,10.1145/3704435,peng-etal-2022-copen,chen-etal-2023-exploring,ding-etal-2023-enhancing,ding2023parameter,su-etal-2023-exploring
+@inproceedings{
+hu2024minicpm,
+title={Mini{CPM}: Unveiling the Potential of Small Language Models with Scalable Training Strategies},
+author={Shengding Hu and Yuge Tu and Xu Han and Ganqu Cui and Chaoqun He and Weilin Zhao and Xiang Long and Zhi Zheng and Yewei Fang and Yuxiang Huang and Xinrong Zhang and Zhen Leng Thai and Chongyi Wang and Yuan Yao and Chenyang Zhao and Jie Zhou and Jie Cai and Zhongwu Zhai and Ning Ding and Chao Jia and Guoyang Zeng and dahai li and Zhiyuan Liu and Maosong Sun},
+booktitle={First Conference on Language Modeling},
+year={2024},
+}
+
+@inproceedings{
+hu2024predicting,
+title={Predicting Emergent Abilities with Infinite Resolution Evaluation},
+author={Shengding Hu and Xin Liu and Xu Han and Xinrong Zhang and Chaoqun He and Weilin Zhao and Yankai Lin and Ning Ding and Zebin Ou and Guoyang Zeng and Zhiyuan Liu and Maosong Sun},
+booktitle={The Twelfth International Conference on Learning Representations},
+year={2024},
+}
+
+@inproceedings{hu-etal-2023-wont,
+    title = "Won`t Get Fooled Again: Answering Questions with False Premises",
+    author = "Hu, Shengding  and
+      Luo, Yifan  and
+      Wang, Huadong  and
+      Cheng, Xingyi  and
+      Liu, Zhiyuan  and
+      Sun, Maosong",
+    editor = "Rogers, Anna  and
+      Boyd-Graber, Jordan  and
+      Okazaki, Naoaki",
+    booktitle = "Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = jul,
+    year = "2023",
+    address = "Toronto, Canada",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2023.acl-long.309",
+    pages = "5626--5643",
+    abstract = "Pre-trained language models (PLMs) have shown unprecedented potential in various fields, especially as the backbones for question-answering (QA) systems. However, they tend to be easily deceived by tricky questions such as {\textquotedblleft}How many eyes does the sun have?{\textquotedblright}. Such frailties of PLMs often allude to the lack of knowledge within them. In this paper, we find that the PLMs already possess the knowledge required to rebut such questions, and the key is how to activate the knowledge. To systematize this observation, we investigate the PLMs' responses to one kind of tricky questions, i.e., the false premises questions (FPQs). We annotate a FalseQA dataset containing 2365 human-written FPQs, with the corresponding explanations for the false premises and the revised true premise questions. Using FalseQA, we discover that PLMs are capable of discriminating FPQs by fine-tuning on moderate numbers (e.g., 256) of examples. PLMs also generate reasonable explanations for the false premise, which serve as rebuttals. Further replaying a few general questions during training allows PLMs to excel on FPQs and general questions simultaneously. Our work suggests that once the rebuttal ability is stimulated, knowledge inside the PLMs can be effectively utilized to handle FPQs, which incentivizes the research on PLM-based QA systems. The FalseQA dataset and code are available at \url{https://github.com/thunlp/FalseQA} ."
+}
+
+
+@inproceedings{NEURIPS2022_4027fc45,
+ author = {Hu, Shengding and Zhang, Zhen and Ding, Ning and Wang, Yadao and Wang, Yasheng and Liu, Zhiyuan and Sun, Maosong},
+ booktitle = {Advances in Neural Information Processing Systems},
+ editor = {S. Koyejo and S. Mohamed and A. Agarwal and D. Belgrave and K. Cho and A. Oh},
+ pages = {9853--9865},
+ publisher = {Curran Associates, Inc.},
+ title = {Sparse Structure Search for Delta Tuning},
+ volume = {35},
+ year = {2022}
+}
+
+
+@inproceedings{hu-etal-2023-opendelta,
+    title = "{O}pen{D}elta: A Plug-and-play Library for Parameter-efficient Adaptation of Pre-trained Models",
+    author = "Hu, Shengding  and
+      Ding, Ning  and
+      Zhao, Weilin  and
+      Lv, Xingtai  and
+      Zhang, Zhen  and
+      Liu, Zhiyuan  and
+      Sun, Maosong",
+    editor = "Bollegala, Danushka  and
+      Huang, Ruihong  and
+      Ritter, Alan",
+    booktitle = "Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 3: System Demonstrations)",
+    month = jul,
+    year = "2023",
+    address = "Toronto, Canada",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2023.acl-demo.26",
+    pages = "274--281",
+    abstract = "The scale of large pre-trained models (PTMs) poses significant challenges in adapting to downstream tasks due to the high optimization overhead and storage costs associated with full-parameter fine-tuning. To address this, many studies explore parameter-efficient tuning methods, also framed as {\textquotedblleft}delta tuning{\textquotedblright} in Ding et al. (2022), which updates only a small subset of parameters, known as {\textquotedblleft}delta modules{\textquotedblright}, while keeping the backbone model`s parameters fixed. However, the practicality and flexibility of delta tuning have been limited due to existing implementations that directly modify the code of the backbone PTMs and hard-code specific delta tuning methods for each PTM. In this paper, we present OpenDelta, an open-source library that overcomes these limitations by providing a plug-and-play implementation of various delta tuning methods. Our novel techniques eliminate the need to modify the backbone PTMs' code, making OpenDelta compatible with different, even novel PTMs. OpenDelta is designed to be simple, modular, and extensible, providing a comprehensive platform for researchers and practitioners to adapt large PTMs efficiently."
+}
+
+@inproceedings{NEURIPS2020_73740ea8,
+ author = {Hu, Shengding and Xiong, Zheng and Qu, Meng and Yuan, Xingdi and C\^{o}t\'{e}, Marc-Alexandre and Liu, Zhiyuan and Tang, Jian},
+ booktitle = {Advances in Neural Information Processing Systems},
+ editor = {H. Larochelle and M. Ranzato and R. Hadsell and M.F. Balcan and H. Lin},
+ pages = {10174--10185},
+ publisher = {Curran Associates, Inc.},
+ title = {Graph Policy Network for Transferable Active Learning on Graphs},
+ volume = {33},
+ year = {2020}
+}
+
+
+@inproceedings{
+huang2024unified,
+title={Unified View of Grokking, Double Descent and Emergent Abilities: A Comprehensive Study on Algorithm Task},
+author={Yufei Huang and Shengding Hu and Xu Han and Zhiyuan Liu and Maosong Sun},
+booktitle={First Conference on Language Modeling},
+year={2024},
+}
+
+
+
+@inproceedings{zhang-etal-2024-bench,
+    title = "$\infty${B}ench: Extending Long Context Evaluation Beyond 100{K} Tokens",
+    author = "Zhang, Xinrong  and
+      Chen, Yingfa  and
+      Hu, Shengding  and
+      Xu, Zihang  and
+      Chen, Junhao  and
+      Hao, Moo  and
+      Han, Xu  and
+      Thai, Zhen  and
+      Wang, Shuo  and
+      Liu, Zhiyuan  and
+      Sun, Maosong",
+    editor = "Ku, Lun-Wei  and
+      Martins, Andre  and
+      Srikumar, Vivek",
+    booktitle = "Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = aug,
+    year = "2024",
+    address = "Bangkok, Thailand",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2024.acl-long.814",
+    pages = "15262--15277",
+    abstract = "Processing and reasoning over long contexts is crucial for many practical applications of Large Language Models (LLMs), such as document comprehension and agent construction. Despite recent strides in making LLMs process contexts with more than 100K tokens, there is currently a lack of a standardized benchmark to evaluate this long-context capability. Existing public benchmarks typically focus on contexts around 10K tokens, limiting the assessment and comparison of LLMs in processing longer contexts. In this paper, we propose , the first LLM benchmark featuring an average data length surpassing 100K tokens. comprises synthetic and realistic tasks spanning diverse domains in English and Chinese. The tasks in are designed to require an understanding of long dependencies in contexts and make simply retrieving a limited number of passages from contexts not sufficient for these tasks. Based on , we evaluate several state-of-the-art LLMs tailored for processing long contexts. The experimental results indicate that existing long-context LLMs still require significant advancements to process 100K+ contexts effectively. Furthermore, we present three intriguing analyses regarding the behavior of LLMs processing long context. Our code and data is released."
+}
+
+
+@inproceedings{zhao-etal-2024-decoratelm,
+    title = "{D}ecorate{LM}: Data Engineering through Corpus Rating, Tagging, and Editing with Language Models",
+    author = "Zhao, Ranchi  and
+      Thai, Zhen Leng  and
+      Zhang, Yifan  and
+      Hu, Shengding  and
+      Zhou, Jie  and
+      Ba, Yunqi  and
+      Cai, Jie  and
+      Liu, Zhiyuan  and
+      Sun, Maosong",
+    editor = "Al-Onaizan, Yaser  and
+      Bansal, Mohit  and
+      Chen, Yun-Nung",
+    booktitle = "Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing",
+    month = nov,
+    year = "2024",
+    address = "Miami, Florida, USA",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2024.emnlp-main.83",
+    pages = "1401--1418",
+    abstract = "The performance of Large Language Models (LLMs) is substantially influenced by the pretraining corpus, which consists of vast quantities of unsupervised data processed by the models. Despite its critical role in model performance, ensuring the quality of this data is challenging due to its sheer volume and the absence of sample-level quality annotations and enhancements. In this paper, we introduce DecorateLM, a data engineering method designed to refine the pretraining corpus through data rating, tagging and editing. Specifically, DecorateLM rates texts against quality criteria, tags texts with hierarchical labels, and edits texts into a more formalized format. Due to the massive size of the pretraining corpus, adopting an LLM for decorating the entire corpus is less efficient. Therefore, to balance performance with efficiency, we curate a meticulously annotated training corpus for DecorateLM using a large language model and distill data engineering expertise into a compact 1.2 billion parameter small language model (SLM). We then apply DecorateLM to enhance 100 billion tokens of the training corpus, selecting 45 billion tokens that exemplify high quality and diversity for the further training of another 1.2 billion parameter LLM. Our results demonstrate that employing such high-quality data can significantly boost model performance, showcasing a powerful approach to enhance the quality of the pretraining corpus."
+}
+
+
+@inproceedings{
+luo2025a,
+title={A Multi-Power Law for Loss Curve Prediction Across Learning Rate Schedules},
+author={Kairong Luo and Haodong Wen and Shengding Hu and Zhenbo Sun and Maosong Sun and Zhiyuan Liu and Kaifeng Lyu and Wenguang Chen},
+booktitle={The Thirteenth International Conference on Learning Representations},
+year={2025},
+}
+
+@inproceedings{zhang-etal-2024-beyond,
+    title = "Beyond the Turn-Based Game: Enabling Real-Time Conversations with Duplex Models",
+    author = "Zhang, Xinrong  and
+      Chen, Yingfa  and
+      Hu, Shengding  and
+      Han, Xu  and
+      Xu, Zihang  and
+      Xu, Yuanwei  and
+      Zhao, Weilin  and
+      Sun, Maosong  and
+      Liu, Zhiyuan",
+    editor = "Al-Onaizan, Yaser  and
+      Bansal, Mohit  and
+      Chen, Yun-Nung",
+    booktitle = "Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing",
+    month = nov,
+    year = "2024",
+    address = "Miami, Florida, USA",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2024.emnlp-main.644",
+    pages = "11543--11557",
+    abstract = "As large language models (LLMs) increasingly permeate daily lives, there is a growing demand for real-time interactions that mirror human conversations. Traditional turn-based chat systems driven by LLMs prevent users from verbally interacting with the system while generating responses.To overcome these limitations, we adapt existing LLMs to \textit{duplex models} so that they can listen to users while generating output and dynamically adjust themselves to provide instant feedback.Specifically, we divide the queries and responses of conversations into several time slices and then adopt a time-division-multiplexing (TDM) encoding-decoding strategy to process these slices pseudo-simultaneously.Furthermore, to make LLMs proficient enough to handle real-time conversations, we build a fine-tuning dataset consisting of alternating time slices of queries and responses and covering typical feedback types in instantaneous interactions.Our experiments show that although the queries and responses of conversations are segmented into incomplete slices for processing, LLMs can preserve their original performance on standard benchmarks with a few fine-tuning steps on our dataset. Automatic and human evaluation indicate that duplex models make user-AI interactions more natural and human-like, and greatly improve user satisfaction compared to vanilla LLMs. Our duplex model and dataset will be released soon."
+}
+
+
+@inproceedings{he-etal-2024-ultraeval,
+    title = "{U}ltra{E}val: A Lightweight Platform for Flexible and Comprehensive Evaluation for {LLM}s",
+    author = "He, Chaoqun  and
+      Luo, Renjie  and
+      Hu, Shengding  and
+      Zhao, Ranchi  and
+      Zhou, Jie  and
+      Wu, Hanghao  and
+      Zhang, Jiajie  and
+      Han, Xu  and
+      Liu, Zhiyuan  and
+      Sun, Maosong",
+    editor = "Cao, Yixin  and
+      Feng, Yang  and
+      Xiong, Deyi",
+    booktitle = "Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 3: System Demonstrations)",
+    month = aug,
+    year = "2024",
+    address = "Bangkok, Thailand",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2024.acl-demos.23",
+    pages = "247--257",
+    abstract = "Evaluation is pivotal for honing Large Language Models (LLMs), pinpointing their capabilities and guiding enhancements. The rapid development of LLMs calls for a lightweight and easy-to-use framework for swift evaluation deployment. However, due to the various implementation details to consider, developing a comprehensive evaluation platform is never easy. Existing platforms are often complex and poorly modularized, hindering seamless incorporation into researcher`s workflows. This paper introduces UltraEval, a user-friendly evaluation framework characterized by lightweight, comprehensiveness, modularity, and efficiency. We identify and reimplement three core components of model evaluation (models, data, and metrics). The resulting composability allows for the free combination of different models, tasks, prompts, and metrics within a unified evaluation workflow. Additionally, UltraEval supports diverse models owing to a unified HTTP service and provides sufficient inference acceleration."
+}
+
+@inproceedings{he-etal-2024-olympiadbench,
+    title = "{O}lympiad{B}ench: A Challenging Benchmark for Promoting {AGI} with Olympiad-Level Bilingual Multimodal Scientific Problems",
+    author = "He, Chaoqun  and
+      Luo, Renjie  and
+      Bai, Yuzhuo  and
+      Hu, Shengding  and
+      Thai, Zhen  and
+      Shen, Junhao  and
+      Hu, Jinyi  and
+      Han, Xu  and
+      Huang, Yujie  and
+      Zhang, Yuxiang  and
+      Liu, Jie  and
+      Qi, Lei  and
+      Liu, Zhiyuan  and
+      Sun, Maosong",
+    editor = "Ku, Lun-Wei  and
+      Martins, Andre  and
+      Srikumar, Vivek",
+    booktitle = "Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = aug,
+    year = "2024",
+    address = "Bangkok, Thailand",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2024.acl-long.211",
+    pages = "3828--3850",
+    abstract = "Recent advancements have seen Large Language Models (LLMs) and Large Multimodal Models (LMMs) surpassing general human capabilities in various tasks, approaching the proficiency level of human experts across multiple domains. With traditional benchmarks becoming less challenging for these models, new rigorous challenges are essential to gauge their advanced abilities. In this work, we present OlympiadBench, an Olympiad-level bilingual multimodal scientific benchmark, featuring 8,476 problems from Olympiad-level mathematics and physics competitions, including the Chinese college entrance exam. Each problem is detailed with expert-level annotations for step-by-step reasoning. Evaluating top-tier models on OlympiadBench, we implement a comprehensive assessment methodology to accurately evaluate model responses. Notably, the best-performing model, GPT-4V, attains an average score of 17.97{\%} on OlympiadBench, with a mere 10.74{\%} in physics, highlighting the benchmark rigor and the intricacy of physical reasoning. Our analysis orienting GPT-4V points out prevalent issues with hallucinations, knowledge omissions, and logical fallacies. We hope that our challenging benchmark can serve as a valuable resource for helping future AGI research endeavors. The data and evaluation code are available at \url{https://github.com/OpenBMB/OlympiadBench}"
+}
+
+
+@inproceedings{song-etal-2025-prosparse,
+    title = "{P}ro{S}parse: Introducing and Enhancing Intrinsic Activation Sparsity within Large Language Models",
+    author = "Song, Chenyang  and
+      Han, Xu  and
+      Zhang, Zhengyan  and
+      Hu, Shengding  and
+      Shi, Xiyu  and
+      Li, Kuai  and
+      Chen, Chen  and
+      Liu, Zhiyuan  and
+      Li, Guangli  and
+      Yang, Tao  and
+      Sun, Maosong",
+    editor = "Rambow, Owen  and
+      Wanner, Leo  and
+      Apidianaki, Marianna  and
+      Al-Khalifa, Hend  and
+      Eugenio, Barbara Di  and
+      Schockaert, Steven",
+    booktitle = "Proceedings of the 31st International Conference on Computational Linguistics",
+    month = jan,
+    year = "2025",
+    address = "Abu Dhabi, UAE",
+    publisher = "Association for Computational Linguistics",
+    pages = "2626--2644",
+    abstract = "Activation sparsity refers to the existence of considerable weakly-contributed elements among activation outputs, serving as a promising paradigm for accelerating model inference. Nevertheless, most large language models (LLMs) adopt activation functions without intrinsic activation sparsity (e.g., GELU and Swish). Some recent efforts have explored introducing ReLU or its variants as the substitutive activation function to pursue activation sparsity and acceleration, but few can simultaneously obtain high activation sparsity and comparable model performance. This paper introduces a simple and effective method named {\textquotedblleft}ProSparse{\textquotedblright} to sparsify LLMs while achieving both targets. Specifically, after introducing ReLU activation, ProSparse adopts progressive sparsity regularization with a factor smoothly increasing for multiple stages. This can enhance activation sparsity and mitigate performance degradation by avoiding radical shifts in activation distributions. With ProSparse, we obtain high sparsity of 89.32{\%} for LLaMA2-7B, 88.80{\%} for LLaMA2-13B, and 87.89{\%} for end-size MiniCPM-1B, respectively, with comparable performance to their original Swish-activated versions. These present the most sparsely activated models among open-source LLaMA versions and competitive end-size models. Inference acceleration experiments further demonstrate the significant practical acceleration potential of LLMs with higher activation sparsity, obtaining up to 4.52x inference speedup."
+}
+
+
+@article{ZHOU202057,
+title = {Graph neural networks: A review of methods and applications},
+journal = {AI Open},
+volume = {1},
+pages = {57-81},
+year = {2020},
+issn = {2666-6510},
+author = {Jie Zhou and Ganqu Cui and Shengding Hu and Zhengyan Zhang and Cheng Yang and Zhiyuan Liu and Lifeng Wang and Changcheng Li and Maosong Sun},
+keywords = {Deep learning, Graph neural network},
+abstract = {Lots of learning tasks require dealing with graph data which contains rich relation information among elements. Modeling physics systems, learning molecular fingerprints, predicting protein interface, and classifying diseases demand a model to learn from graph inputs. In other domains such as learning from non-structural data like texts and images, reasoning on extracted structures (like the dependency trees of sentences and the scene graphs of images) is an important research topic which also needs graph reasoning models. Graph neural networks (GNNs) are neural models that capture the dependence of graphs via message passing between the nodes of graphs. In recent years, variants of GNNs such as graph convolutional network (GCN), graph attention network (GAT), graph recurrent network (GRN) have demonstrated ground-breaking performances on many deep learning tasks. In this survey, we propose a general design pipeline for GNN models and discuss the variants of each component, systematically categorize the applications, and propose four open problems for future research.}
+}
+
+
+@inproceedings{cheng-etal-2024-legent,
+    title = "{LEGENT}: Open Platform for Embodied Agents",
+    author = "Cheng, Zhili  and
+      Wang, Zhitong  and
+      Hu, Jinyi  and
+      Hu, Shengding  and
+      Liu, An  and
+      Tu, Yuge  and
+      Li, Pengkai  and
+      Shi, Lei  and
+      Liu, Zhiyuan  and
+      Sun, Maosong",
+    editor = "Cao, Yixin  and
+      Feng, Yang  and
+      Xiong, Deyi",
+    booktitle = "Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 3: System Demonstrations)",
+    month = aug,
+    year = "2024",
+    address = "Bangkok, Thailand",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2024.acl-demos.32",
+    pages = "335--345",
+    abstract = "Despite advancements in Large Language Models (LLMs) and Large Multimodal Models (LMMs), their integration into language-grounded, human-like embodied agents remains incomplete, hindering complex real-life task performance in 3D environments. Existing integrations often feature limited open-sourcing, challenging collective progress in this field. We introduce LEGENT, an open, scalable platform for developing embodied agents using LLMs and LMMs. LEGENT offers a dual approach: a rich 3D environment with interactive, communicable, and actionable agents, paired with a user-friendly interface, and a sophisticated data generation pipeline utilizing advanced algorithms to exploit supervision from simulated worlds at scale. In our experiments, an embryonic vision-language-action model trained on LEGENT-generated data surpasses GPT-4V in embodied tasks, showcasing promising generalization capabilities. The demo video is available at the following link https://video.legent.ai."
+}
+
+
+
+@article{10.1145/3704435,
+author = {Qin, Yujia and Hu, Shengding and Lin, Yankai and Chen, Weize and Ding, Ning and Cui, Ganqu and Zeng, Zheni and Zhou, Xuanhe and Huang, Yufei and Xiao, Chaojun and Han, Chi and Fung, Yi Ren and Su, Yusheng and Wang, Huadong and Qian, Cheng and Tian, Runchu and Zhu, Kunlun and Liang, Shihao and Shen, Xingyu and Xu, Bokai and Zhang, Zhen and Ye, Yining and Li, Bowen and Tang, Ziwei and Yi, Jing and Zhu, Yuzhang and Dai, Zhenning and Yan, Lan and Cong, Xin and Lu, Yaxi and Zhao, Weilin and Huang, Yuxiang and Yan, Junxi and Han, Xu and Sun, Xian and Li, Dahai and Phang, Jason and Yang, Cheng and Wu, Tongshuang and Ji, Heng and Li, Guoliang and Liu, Zhiyuan and Sun, Maosong},
+title = {Tool Learning with Foundation Models},
+year = {2024},
+issue_date = {April 2025},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {57},
+number = {4},
+issn = {0360-0300},
+doi = {10.1145/3704435},
+abstract = {Humans possess an extraordinary ability to create and utilize tools. With the advent of foundation models, artificial intelligence systems have the potential to be equally adept in tool use as humans. This paradigm, which is dubbed as tool learning with foundation models, combines the strengths of tools and foundation models to achieve enhanced accuracy, efficiency, and automation in problem-solving. This article presents a systematic investigation and comprehensive review of tool learning. We first introduce the background of tool learning, including its cognitive origins, the paradigm shift of foundation models, and the complementary roles of tools and models. Then we recapitulate existing tool learning research and formulate a general framework: starting from understanding the user instruction, models should learn to decompose a complex task into several subtasks, dynamically adjust their plan through reasoning, and effectively conquer each sub-task by selecting appropriate tools. We also discuss how to train models for improved tool-use capabilities and facilitate generalization in tool learning. Finally, we discuss several open problems that require further investigation, such as ensuring trustworthy tool use, enabling tool creation with foundation models, and addressing personalization challenges. Overall, we hope this article could inspire future research in integrating tools with foundation models.},
+journal = {ACM Comput. Surv.},
+month = dec,
+articleno = {101},
+numpages = {40},
+keywords = {Tool use, foundation models, literature survey}
+}
+
+
+@inproceedings{peng-etal-2022-copen,
+    title = "{COPEN}: Probing Conceptual Knowledge in Pre-trained Language Models",
+    author = "Peng, Hao  and
+      Wang, Xiaozhi  and
+      Hu, Shengding  and
+      Jin, Hailong  and
+      Hou, Lei  and
+      Li, Juanzi  and
+      Liu, Zhiyuan  and
+      Liu, Qun",
+    editor = "Goldberg, Yoav  and
+      Kozareva, Zornitsa  and
+      Zhang, Yue",
+    booktitle = "Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing",
+    month = dec,
+    year = "2022",
+    address = "Abu Dhabi, United Arab Emirates",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2022.emnlp-main.335",
+    pages = "5015--5035",
+    abstract = "Conceptual knowledge is fundamental to human cognition and knowledge bases. However, existing knowledge probing works only focus on evaluating factual knowledge of pre-trained language models (PLMs) and ignore conceptual knowledge. Since conceptual knowledge often appears as implicit commonsense behind texts, designing probes for conceptual knowledge is hard. Inspired by knowledge representation schemata, we comprehensively evaluate conceptual knowledge of PLMs by designing three tasks to probe whether PLMs organize entities by conceptual similarities, learn conceptual properties, and conceptualize entities in contexts, respectively. For the tasks, we collect and annotate 24k data instances covering 393 concepts, which is COPEN, a COnceptual knowledge Probing bENchmark. Extensive experiments on different sizes and types of PLMs show that existing PLMs systematically lack conceptual knowledge and suffer from various spurious correlations. We believe this is a critical bottleneck for realizing human-like cognition in PLMs. COPEN and our codes are publicly released at https://github.com/THU-KEG/COPEN."
+}
+
+@inproceedings{chen-etal-2023-exploring,
+    title = "Exploring Lottery Prompts for Pre-trained Language Models",
+    author = "Chen, Yulin  and
+      Ding, Ning  and
+      Wang, Xiaobin  and
+      Hu, Shengding  and
+      Zheng, Haitao  and
+      Liu, Zhiyuan  and
+      Xie, Pengjun",
+    editor = "Rogers, Anna  and
+      Boyd-Graber, Jordan  and
+      Okazaki, Naoaki",
+    booktitle = "Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = jul,
+    year = "2023",
+    address = "Toronto, Canada",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2023.acl-long.860",
+    pages = "15428--15444",
+    abstract = "Consistently scaling pre-trained language models (PLMs) imposes substantial burdens on model adaptation, necessitating more efficient alternatives to conventional fine-tuning. Given the advantage of prompting in the zero-shot setting and the observed performance fluctuation among different prompts, we explore the instance-level prompt and their generalizability.By searching through the prompt space, we first validate the assumption that for every instance, there is almost always a lottery prompt that induces the correct prediction from the PLM, and such prompt can be obtained at a low cost thanks to the inherent ability of PLMs.Meanwhile, it is shown that some strong lottery prompts have high performance over the whole training set, and they are equipped with distinguishable linguistic features. Lastly, we attempt to generalize the searched strong lottery prompts to unseen data with prompt ensembling method. Experiments are conducted on various types of NLP classification tasks and demonstrate that the proposed method can achieve comparable results with other gradient-free and optimization-free baselines."
+}
+
+
+@inproceedings{ding-etal-2023-enhancing,
+    title = "Enhancing Chat Language Models by Scaling High-quality Instructional Conversations",
+    author = "Ding, Ning  and
+      Chen, Yulin  and
+      Xu, Bokai  and
+      Qin, Yujia  and
+      Hu, Shengding  and
+      Liu, Zhiyuan  and
+      Sun, Maosong  and
+      Zhou, Bowen",
+    editor = "Bouamor, Houda  and
+      Pino, Juan  and
+      Bali, Kalika",
+    booktitle = "Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing",
+    month = dec,
+    year = "2023",
+    address = "Singapore",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2023.emnlp-main.183",
+    pages = "3029--3051",
+    abstract = "Fine-tuning on instruction data has been widely validated as an effective practice for implementing chat language models like ChatGPT. Scaling the diversity and quality of such data, although straightforward, stands a great chance of leading to improved performance. This paper aims to push the upper bound of open-source models further. We first provide a systematically designed, diverse, informative, large-scale dataset of instructional conversations, UltraChat, which does not involve human queries. Our objective is to capture the breadth of interactions between a human user and an AI assistant and employs a comprehensive framework to generate multi-turn conversation iteratively. UltraChat contains 1.5 million high-quality multi-turn dialogues and covers a wide range of topics and instructions. Our statistical analysis of UltraChat reveals its superiority in various key metrics, including scale, average length, diversity, coherence, etc., solidifying its position as a leading open-source dataset. Building upon UltraChat, we fine-tune a LLaMA model to create a powerful conversational model, UltraLM. Our evaluations indicate that UltraLM consistently outperforms other open-source models, including WizardLM and Vicuna, the previously recognized state-of-the-art open-source models."
+}
+
+
+@article{ding2023parameter,
+  title={Parameter-efficient fine-tuning of large-scale pre-trained language models},
+  author={Ding, Ning and Qin, Yujia and Yang, Guang and Wei, Fuchao and Yang, Zonghan and Su, Yusheng and Hu, Shengding and Chen, Yulin and Chan, Chi-Min and Chen, Weize and others},
+  journal={Nature Machine Intelligence},
+  volume={5},
+  number={3},
+  pages={220--235},
+  year={2023},
+  publisher={Nature Publishing Group UK London}
+}
+
+@inproceedings{su-etal-2023-exploring,
+    title = "Exploring the Impact of Model Scaling on Parameter-Efficient Tuning",
+    author = "Su, Yusheng  and
+      Chan, Chi-Min  and
+      Cheng, Jiali  and
+      Qin, Yujia  and
+      Lin, Yankai  and
+      Hu, Shengding  and
+      Yang, Zonghan  and
+      Ding, Ning  and
+      Sun, Xingzhi  and
+      Xie, Guotong  and
+      Liu, Zhiyuan  and
+      Sun, Maosong",
+    editor = "Bouamor, Houda  and
+      Pino, Juan  and
+      Bali, Kalika",
+    booktitle = "Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing",
+    month = dec,
+    year = "2023",
+    address = "Singapore",
+    publisher = "Association for Computational Linguistics",
+    doi = "10.18653/v1/2023.emnlp-main.931",
+    pages = "15062--15078",
+    abstract = "Parameter-efficient tuning (PET) methods can effectively drive extremely large pre-trained language models (PLMs) by training only minimal parameters. Different PET methods utilize different manually designed tunable modules. In small PLMs, there are usually noticeable performance differences among PET methods. Nevertheless, as the model scale increases, the performance differences become marginal. Hence, we hypothesize that model scaling mitigates the impact of design differences on PET methods. To investigate this hypothesis, we introduce a more flexible PET method called Arbitrary PET (APET) method. The APET method is compatible with a tunable module, which consists of any number of parameters distributed in arbitrary positions. Then, we utilize it and conduct experiments on 11 NLP tasks across 3 representative PLMs. Our investigations reveal that model scaling (1) mitigates the effects of the positions of tunable parameters on performance, and (2) enables tuning methods to achieve performance comparable to full-parameter fine-tuning by optimizing fewer tunable parameters. Intriguingly, we also observe that tuning methods optimize the similar number of tunable parameters to exceed random guess performance on different tasks. We collectively discuss this phenomenon and the two aforementioned findings from an optimization perspective to understand the underlying mechanisms. These conclusions enhance our understanding of the impact of model scaling on PET and assist in designing more effective and efficient PET methods for PLMs of different scales. The source code can be obtained from this GitHub repository: \url{https://github.com/yushengsu-thu/PET_Scaling}."
+}

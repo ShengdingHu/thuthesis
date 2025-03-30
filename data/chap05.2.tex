@@ -1,8 +1,8 @@
 \section{基于知识激活的少样本微调}
 
-使用特定任务提示对预训练语言模型进行微调，已成为文本分类中一种很有前景的方法。特别地，以往研究表明，在数据量少的场景下，提示微调相较于使用额外分类器的通用微调方法具有显著优势。提示微调的核心思想是在输入中插入文本片段，即模板，并将分类问题转化为掩码语言建模问题，其中关键一步是在标签空间和标签词空间之间构建一个投影，即语言表达器（verbalizer）。语言表达器通常是手工制作的，或者通过梯度下降搜索得到，这可能会导致覆盖范围不足，并给结果带来相当大的偏差和高方差。在这项工作中，我们专注于将外部知识融入语言表达器，形成一种\textbf{知识型提示微调}（KPT），以改进并稳定提示微调。 
+使用特定任务提示对预训练语言模型进行微调，已成为文本分类中一种很有前景的方法。特别地，以往研究表明，在数据量少的场景下，提示微调相较于使用额外分类器的通用微调方法具有显著优势。提示微调的核心思想是在输入中插入文本片段，即模板，并将分类问题转化为掩码语言建模问题，其中关键一步是在标签空间和标签词空间之间构建一个投影，即语言表达器（verbalizer）。语言表达器通常是手工制作的，或者通过梯度下降搜索得到，这可能会导致覆盖范围不足，并给结果带来相当大的偏差和高方差。在这项工作中，本文专注于将外部知识融入语言表达器，形成一种\textbf{知识型提示微调}（KPT），以改进并稳定提示微调。 
 
-\subsection{方法设计}
+\subsection{背景}
 
 \subsubsection{提示微调概述}
 设 ${\mathcal{M}}$ 为在大规模语料库上预训练的语言模型。
@@ -15,7 +15,7 @@
     \mathbf{x}_{\text{p}}=\text{\texttt{[CLS]} 一个 \texttt{[MASK]} 问题：} \mathbf{x}
 \end{equation*}
 然后 ${\mathcal{M}}$ 给出词汇表中每个词 $v$ 填入 \texttt{[MASK]} 标记的概率 $P_{\mathcal{M}}(\texttt{[MASK]}=v|\mathbf{x}_{\text{p}})$。
-为了将词汇的概率映射到标签的概率，本文定义了一个\emph{语言表达器}，即从词汇表中的少量词（构成\emph{标签词}集 $\mathcal{V}$）到标签空间 $\mathcal{Y}$ 的映射 $f$，即 $f\colon \mathcal{V} \mapsto \mathcal{Y}$。本文用 $\mathcal{V}_y$ 表示映射到特定标签 $y$ 的 $\mathcal{V}$ 子集，$\cup_{y\in\mathcal{Y}} \mathcal{V}_y = \mathcal{V}$。然后标签 $y$ 的概率 $P(y|\mathbf{x}_{\text{p}})$ 计算为
+为了将词汇的概率映射到标签的概率，通常定义一个\emph{语言表达器}，即从词汇表中的少量词（构成\emph{标签词}集 $\mathcal{V}$）到标签空间 $\mathcal{Y}$ 的映射 $f$，即 $f\colon \mathcal{V} \mapsto \mathcal{Y}$。本文用 $\mathcal{V}_y$ 表示映射到特定标签 $y$ 的 $\mathcal{V}$ 子集，$\cup_{y\in\mathcal{Y}} \mathcal{V}_y = \mathcal{V}$。然后标签 $y$ 的概率 $P(y|\mathbf{x}_{\text{p}})$ 计算为
 
 
 \begin{equation}
@@ -32,7 +32,7 @@
 
 \begin{figure*}[!htbp]
   \centering
-\scalebox{0.97}{
+\scalebox{1.0}{
   \includegraphics[width = \linewidth]{kptplots/framework_knowPrompt.pdf}
   }
   \caption{KPT框架示意图}
@@ -47,7 +47,7 @@
 因此，语言表达器映射的标签词应具备两个属性：\textit{广泛覆盖}和\textit{较少主观偏差}。这种全面的映射对于模仿预训练至关重要，而预训练是提示微调能力的来源。外部结构化知识可以同时满足这两个要求。在本节中，本文介绍了如何利用外部知识进行两种文本分类任务：主题分类和情感分类。
 
 对于主题分类，核心问题是从所有方面和粒度中提取与主题相关的标签词。从这个角度出发，本文选择了Related Words~\footnote{\url{https://relatedwords.org}}，这是一个从多个资源（包括词嵌入、ConceptNet~\cite{speer2017conceptnet}、WordNet~\cite{pedersen2004wordnet}等）聚合的知识图谱 $\mathcal{G}$ 作为外部知识库。
-边表示“相关性”关系，并标注了相关性分数。本文假设每个类别的名称 $v_0$ 是正确的，并将其作为锚点获取邻域节点 $N_{\mathcal{G}}(v_0)$，其分数大于阈值 $\eta$ 作为相关词~\footnote{实验中取 $\eta=0$}。因此，每个类别被映射到一组标签词 $\mathcal{V}_{y} = N_{\mathcal{G}}(v_0) \cup \{v_0\}$。
+边表示“相关性”关系，并标注了相关性分数。本文假设每个类别的名称 $v_0$ 是正确的，并将其作为锚点获取邻域节点 $N_{\mathcal{G}}(v_0)$，其相关性分数大于阈值 $\eta$ 的节点作为相关词~\footnote{实验中取 $\eta=0$}。因此，每个类别被映射到一组标签词 $\mathcal{V}_{y} = N_{\mathcal{G}}(v_0) \cup \{v_0\}$。
 对于二元情感分类，主要目标是扩展二元情感到更多粒度和方面的情感。本文使用了之前研究人员总结的情感词典~\footnote{\url{https://www.enchantedlearning.com/wordlist/positivewords.shtml}}$^{,}$\footnote{ \url{https://www.enchantedlearning.com/wordlist/negativewords.shtml}}。
 KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 
@@ -75,19 +75,19 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 
 尽管构建了一个包含全面标签词的知识化语言表达器，但由于知识库的词汇并非为预训练语言模型量身定制，收集的标签词可能非常嘈杂。因此，有必要通过保留高质量词来优化语言表达器。在本节中，本文提出了四种优化方法，分别解决嘈杂标签词的不同问题。
 
-\textbf{频率优化。} 第一个问题是处理罕见词。本文假设知识库中的某些词对预训练语言模型来说是罕见的，因此这些词的预测概率往往不准确。我提出使用标签词的\emph{上下文先验}来去除这些词。具体来说，给定一个文本分类任务，本文表示语料库中句子 $\mathbf{x}$ 的分布为 $\mathcal{D}$。对于分布中的每个句子，我将其包裹到模板中，并计算每个标签词 $v$ 在掩码位置的预测概率 $P_{\mathcal{M}}(\texttt{[MASK]}\!\!\!=\!v|\mathbf{x}_{\text{p}})$。通过对整个句子分布的概率取期望，可以得到标签词在掩码位置的先验分布。将其形式化为
+\textbf{频率优化。} 第一个问题是处理罕见词。本文假设知识库中的某些词对预训练语言模型来说是罕见的，因此这些词的预测概率往往不准确。本文提出使用标签词的\emph{上下文先验}来去除这些词。具体来说，给定一个文本分类任务，本文表示语料库中句子 $\mathbf{x}$ 的分布为 $\mathcal{D}$。对于分布中的每个句子，本文将其包裹到模板中，并计算每个标签词 $v$ 在掩码位置的预测概率 $P_{\mathcal{M}}(\texttt{[MASK]}\!\!\!=\!v|\mathbf{x}_{\text{p}})$。通过对整个句子分布的概率取期望，可以得到标签词在掩码位置的先验分布。将其形式化为
 
 \begin{equation}
  P_{\mathcal{D}}(v)\! =\! \mathbb{E}_{\mathbf{x}\sim \mathcal{D}} P_{\mathcal{M}}(\texttt{[MASK]}\!\!\!=\!v|\mathbf{x}_{\text{p}}).
 \end{equation}
-根据经验，本文发现使用从训练集中采样的小规模\emph{未标注支持集} $\tilde{\mathcal{C}}$ 并去除标签，可以很好地估计上述期望。因此，假设输入样本 $\{\mathbf{x}\in \tilde{\mathcal{C}}\}$ 具有均匀先验分布，上下文先验近似为
+根据经验，本文发现使用从训练集中采样的小规模\emph{未标注支持集} $\tilde{\mathcal{C}}$ 并去除标签信息，可以很好地估计上述期望。因此，假设输入样本 $\{\mathbf{x}\in \tilde{\mathcal{C}}\}$ 具有均匀先验分布，上下文先验近似为
 \begin{equation}
     P_{\mathcal{D}}(v) \approx \frac{1}{|\tilde{\mathcal{C}}|} \sum_{\mathbf{x}\in \tilde{\mathcal{C}}} P_{\mathcal{M}}(\texttt{[MASK]}\!\!\!=\!v|\mathbf{x}_{\text{p}}),
 \end{equation}
-然后移除先验概率小于阈值的标签词。由于上下文化先验概率的绝对值分布可能因任务而异，确定一个具体的上下文化先验概率阈值可能会非常难以捉摸。本文采用基于排序的阈值，即过滤掉出现在上下文化先验概率下半部分的标签词。
+然后移除先验概率小于阈值的标签词。由于上下文先验概率的绝对值分布可能因任务而异，确定一个具体的上下文先验概率阈值可能会非常难以捉摸。本文采用基于排序的阈值，即过滤掉出现在上下文先验概率下半部分的标签词。
 
 \textbf{相关性优化。}
-由于本文构建的知识化标签词是完全无监督的，某些标签词可能比其他词更相关于其所属类别。
+由于本文构建的知识化标签词是完全无监督的，某些标签词可能比其他词更相关其所属类别。
 为了衡量标签词与每个类别的相关性，本文获取标签词在支持集 $\tilde{\mathcal{C}}$ 上的预测概率作为标签词的向量表示 $\mathbf{q}^{v}$，即 $\mathbf{q}^{v}$ 的第 $i$ 个元素为
 
 \begin{equation}
@@ -95,7 +95,7 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 \end{equation}
 其中 $\mathbf{x}_{i{\text{p}}}$ 表示句子 $x_i$ 与模板 $\text{p}$ 的组合。
 
-为了估计类别的表示，本文假设每个类别的名称 $v_0$（例如“科学”对于 \textsc{科学}）虽然覆盖范围有限，但与类别非常相关。然后本文使用这些名称的向量表示 $\mathbf{q}^{v_0}$ 作为类别的表示 $\mathbf{q}^{y}$。因此，标签词 $v$ 与类别 $y$ 之间的相关性得分计算为两个表示之间的余弦相似度：
+为了估计类别的表示，本文假设每个类别的名称 $v_0$，虽然覆盖范围有限，但与类别非常相关。然后本文使用这些名称的向量表示 $\mathbf{q}^{v_0}$ 作为类别的表示 $\mathbf{q}^{y}$。因此，标签词 $v$ 与类别 $y$ 之间的相关性得分计算为两个表示之间的余弦相似度：
 \begin{equation}
     r(v, y) = \operatorname{cos}(\mathbf{q}^{v}, \mathbf{q}^{y}) = \operatorname{cos}(\mathbf{q}^{v}, \mathbf{q}^{v_0}).
 \end{equation}
@@ -107,7 +107,7 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 \end{equation}
 其中 $f(v)$ 是 $v$ 对应的类别。
 
-理想情况下，一个好的标签词至少应具有对其所属类别的高于其他类别平均相关性得分的相关性得分。因此，本文移除 $R(v)<1$ 的标签词。在实践中，本文对公式~\eqref{equ: rr_tfidf} 进行了轻微修改，这是因为本文观察到在只有少数类别的分类任务中，提供一个更严格的标准以确保标签词对\emph{任何其他}类别的相关性得分低于其对所属类别的得分是更好的选择，即优先选择IDF得分中的\emph{最大值}。为了保持统一的标准，本文使用基于范数的IDF得分：
+理想情况下，一个好的标签词的相关性得分至少应高于其他类别的平均相关性得分。因此，本文移除 $R(v)<1$ 的标签词。在实践中，本文对公式~\eqref{equ: rr_tfidf} 进行了轻微修改，这是因为本文观察到在只有少数类别的分类任务中，提供一个更严格的标准以确保标签词对\emph{任何其他}类别的相关性得分低于其对所属类别的得分是更好的选择，即优先选择IDF得分中的\emph{最大值}。为了保持统一的标准，本文使用基于范数的IDF得分：
 \begin{equation}
     R^d(v)\! =\! r(v, f(v)) \large(\frac{|\mathcal{Y}|-1}{\sum_{y\in \mathcal{Y}, y\neq f(v)} r(v,y)^d}\large)^{1/d},
 \end{equation}
@@ -129,7 +129,7 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 \end{equation}
 其中 $P_{\mathcal{D}}(v)$ 是标签词的先验概率。最终概率归一化为1。
 
-\textbf{可学习优化}。在少样本学习中，优化可以通过学习过程加强。具体来说，本文为每个标签词 $v$（可能已经通过上述方法优化）分配一个可学习权重 $w_v$。权重形成一个向量 $\mathbf{w}\in \mathbb{R}^{|\mathcal{V}|}$，初始化为零向量。权重在每个 $\mathcal{V}_y$ 内归一化：
+\textbf{可学习优化}。在少样本学习中，优化可以通过学习过程得到加强。具体来说，本文为每个标签词 $v$（可能已经通过上述方法优化）分配一个可学习权重 $w_v$。权重形成一个向量 $\mathbf{w}\in \mathbb{R}^{|\mathcal{V}|}$，初始化为零向量。权重在每个 $\mathcal{V}_y$ 内归一化：
 
 \begin{equation}
     \alpha_v = \frac{\operatorname{exp}(w_v)}{\sum_{u\in \mathcal{V}_y} \operatorname{exp}(w_u)}.
@@ -160,10 +160,10 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 \end{equation}
 其中 $s(y|\mathbf{x}_{\text{p}})$ 为
 \begin{equation}
-        s(y|\mathbf{x}_{\text{p}})\!=\!\! \sum_{v\in\mathcal{V}_y} \!\!\alpha_v  \operatorname{log}{P}_{\mathcal{M}}(\texttt{[MASK]}\!\!\!=\!v|\mathbf{x}_{\text{p}})。
+        s(y|\mathbf{x}_{\text{p}})\!=\!\! \sum_{v\in\mathcal{V}_y} \!\!\alpha_v  \operatorname{log}{P}_{\mathcal{M}}(\texttt{[MASK]}\!\!\!=\!v|\mathbf{x}_{\text{p}}).
 \end{equation}
 
-该目标函数适用于通过应用交叉熵损失对预测概率进行连续优化。
+该目标函数适合应用交叉熵损失对预测概率进行连续优化。
 
 
 \subsubsection{KPT方法的理论分析}
@@ -201,11 +201,11 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 
 现在，标签的预测概率由三部分组成。
 
-(1) 第一部分$p(v|\text{Y}=y)$是在给定类别标签$y$的情况下预测特定标签词$v$的概率。直观上，如果标签词与标签$y$相关，则该概率值会较高。在KPT中，\textbf{相关性优化}通过量化目标估计该概率，即如果相关性得分超过阈值$1$，则保留该值，否则将其过滤。另一方面，\textbf{可学习优化}通过连续权重估计该概率。
+(1) 第一部分$p(v|\text{Y}=y)$是在给定类别标签$y$的情况下预测特定标签词$v$的概率。直观上，如果标签词与标签$y$相关，则该概率值会较高。在KPT中，\textbf{相关性优化}通过量化目标估计该概率，即如果相关性得分超过阈值1，则保留该值，否则将其过滤。另一方面，\textbf{可学习优化}通过连续权重估计该概率。
 
-(2) 第二部分是分母中的$p(\texttt{[M]}\!\!\!=\!v)$。该术语实际上是标签词$v$的先验概率，由\textbf{上下文校准}估计。之前的工作也尝试通过上下文无关的方式处理该术语~\cite{holtzman2021surface, pmlr-v139-zhao21c}。
+(2) 第二部分是分母中的$p(\texttt{[M]}\!\!\!=\!v)$。该项实际上是标签词$v$的先验概率，由\textbf{上下文校准}估计。之前的工作也尝试通过上下文无关的方式处理该项~\cite{holtzman2021surface, pmlr-v139-zhao21c}。
 
-(3) 最后一项$P_{\mathcal{M}}(\texttt{[MASK]}\!\!\!=\!v|\mathbf{x}_{\text{p}})$是由PLM预测的标签词$v$的概率，这是大多数工作中唯一的组成部分，例如手动语言表达器~\cite{schick2020exploiting}，与KPT相比，这些方法得到的解决方案是次优的。
+(3) 最后一项$P_{\mathcal{M}}(\texttt{[MASK]}\!\!\!=\!v|\mathbf{x}_{\text{p}})$是由大语言模型预测的标签词$v$的概率，这是大多数工作中唯一的组成部分，例如手动语言表达器~\cite{schick2020exploiting}，与KPT相比，这些方法得到的解决方案是次优的。
 
 因此，只要使用公式~\eqref{appequ_1}作为其核心假设，所有使用多个标签词表示类别标签的语言表达器都可以形式化到该框架中。然而，据本文所知，KPT是第一个将这三个组成部分结合起来形成强大语言表达器的方法。
 
@@ -305,17 +305,17 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
        T_1(\mathbf{x}) & = \text{ It was \texttt{[MASK]} } .\  \mathbf{x}\\
     T_2(\mathbf{x}) &  = \text{ Just \texttt{[MASK]} ! } \mathbf{x}\\
       T_3(\mathbf{x}) & = \mathbf{x} \text{ All in all, it was  \texttt{[MASK]}} . \\
-      T_4(\mathbf{x}) & = \mathbf{x} \text{ In summary, it was  \texttt{[MASK]}} ".  
+      T_4(\mathbf{x}) & = \mathbf{x} \text{ In summary, it was  \texttt{[MASK]}} .  
 \end{align*}
 \end{mybox}
 }
 
-由于 亚马逊数据集 的测试集过大，本文从 400,000 个测试样本中随机抽取 10,000 个样本进行测试，预实验表明这对性能影响极小。
+由于 亚马逊数据集 的测试集过大，本文从 400,000 个测试样本中随机抽取 10,000 个样本进行测试。
 
 
 
 \subsubsection{实验设置}
-实验基于OpenPrompt~\cite{ding2021openprompt}进行，这是一个我参与开发的提示学习开源工具包。预训练语言模型使用$\text{RoBERTa}_\text{large}$~\cite{liu2019roberta}。测试指标在所有实验中使用Micro-F1。对于所有零样本实验，如果实验中引入了随机性，则使用不同的随机种子重复实验3次；对于所有少样本实验，重复5次。需要注意的是，考虑到四种模板和五/三个随机种子，每个基于提示的方法的得分是20/12次实验的平均值，这大大降低了评估结果的随机性。基于支持集$\tilde{\mathcal{C}}$的优化中，未标注支持集的大小$|\tilde{\mathcal{C}}|$为200。对于少样本学习，实验设置了1、5、10和20样本。在$k$样本实验中，从原始训练集中为每个类别采样$k$个实例组成少样本训练集，并采样另外$k$个实例组成验证集。整个模型训练5个epoch，并选择验证性能最佳的检查点进行测试。其他超参数见表~\ref{tab:app_exp_settings}。对于软提示词，本文使用 $3e-4$ 的学习率来加速其软标签词嵌入的收敛。
+实验基于OpenPrompt~\cite{ding2021openprompt}进行，这是一个本文作者参与开发的提示学习开源工具包。预训练语言模型使用$\text{RoBERTa}_\text{large}$~\cite{liu2019roberta}。测试指标在所有实验中使用Micro-F1。对于所有零样本实验，如果实验中引入了随机性，则使用不同的随机种子重复实验3次；对于所有少样本实验，重复5次。需要注意的是，考虑到四种模板和五/三个随机种子，每个基于提示的方法的得分是20/12次实验的平均值，这大大降低了评估结果的随机性。基于支持集$\tilde{\mathcal{C}}$的优化中，未标注支持集的大小$|\tilde{\mathcal{C}}|$为200。对于少样本学习，实验设置了1、5、10和20样本。在$k$样本实验中，从原始训练集中为每个类别采样$k$个实例组成少样本训练集，并采样另外$k$个实例组成验证集。整个模型训练5个轮次，并选择验证集上性能最佳的检查点进行测试。其他超参数见表~\ref{tab:app_exp_settings}。对于软提示词，本文使用 $3e-4$ 的学习率来加速其软标签词嵌入的收敛。
 
 \begin{table}[!htbp]
     \centering
@@ -339,11 +339,11 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 
 
 \subsubsection{基线方法}
-在本小节中，本文介绍了用于对比的基线方法。为了更好地理解本文提出的方法，本文还比较了KPT在不同配置下的性能，也在下面列为基线。
+在本小节中，本文介绍了用于对比的基线方法。为了更好地理解本文提出的方法，本文还比较了KPT在不同配置下的性能，并将其列在下面作为基线。
 
-\textbf{微调（FT）。}\quad 传统的微调方法将预训练语言模型的\texttt{[CLS]}标记的隐藏嵌入输入分类层以进行预测。需要注意的是，微调方法不能应用于零样本设置，因为分类层是随机初始化的。
+\textbf{微调（FT）。}\quad 传统的微调方法将预训练语言模型的\texttt{[CLS]}标记的隐藏嵌入输入到分类层以进行预测。需要注意的是，微调方法不能应用于零样本设置，因为分类层是随机初始化的。
 
-\textbf{提示微调（PT）。}\quad 常规的提示微调方法使用类名作为每个类的唯一标签词，这种方法在PET~\cite{schick2020exploiting}和大多数现有工作中使用。为了公平比较，本文未使用PET中的技巧，例如自训练和提示集成，因为这些技巧与本文的贡献正交。
+\textbf{提示微调（PT）。}\quad 常规的提示微调方法使用类名作为每个类的唯一标签词，这种方法在PET~\cite{schick2020exploiting}和大多数现有工作中被使用。为了公平比较，本文未使用PET中的技巧，例如自训练和提示集成，因为这些技巧与本文的贡献正交。
 
 \textbf{自动标签词生成器（AUTO）。}\quad 自动标签词生成器由PETAL~\cite{schick2020automatically}提出，它使用有标注数据从预训练语言模型的词汇表中选择信息量最大的标签词。该方法适用于没有手动定义类名的情况。目前尚不清楚如何将其与手动定义的类名结合以提升性能，以及如何在零样本设置中应用。因此，本文仅在少样本设置中且未提供类名信息的情况下进行比较。
 
@@ -351,7 +351,7 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 
 \textbf{PT+CC。} 对于零样本设置，本文进一步引入了结合上下文校准的PT作为基线，以观察上下文校准相较于知识化标签词生成器的改进程度\footnote{使用的支持集与KPT相同。}。
 
-对于\textbf{KPT}，本文实验了不同变体以更好地理解所提出的方法，例如优化。\textbf{-FR}、\textbf{-RR}、\textbf{-CC}和\textbf{-LR}分别表示不进行频率优化、相关性优化、上下文校准和可学习优化的变体。在少样本实验中，本文假设监督训练数据可以将每个标签词的输出概率训练到所需的幅度，因此在KPT中未使用CC和FR。这一决定的合理性在小节\ref{app:fewshot-cali}中进行了说明。
+对于\textbf{KPT}，本文实验了不同变体以更好地理解所提出的方法，例如\textbf{-FR}、\textbf{-RR}、\textbf{-CC}和\textbf{-LR}分别表示不进行频率优化、相关性优化、上下文校准和可学习优化的变体。在少样本实验中，本文假设监督训练数据可以将每个标签词的输出概率训练到所需的幅度，因此KPT中未使用CC和FR。这一决定的合理性在小节\ref{app:fewshot-cali}中进行了说明。
 
 
 \subsubsection{预实验}
@@ -375,8 +375,7 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 \label{app:soft-pilot}
 \end{table}
 
-根据~\citep{gao2020making}指出的，手动定义的语言表达器比自动搜索/优化的语言表达器更具竞争力，甚至表现更好，这进一步加强了本文通过注入更多外部人类知识来改进手动语言表达器的动机。为了进一步说明手动语言表达器的优势，本文在soft 语言表达器中进行了初步实验。软语言表达器~\cite{hambardzumyan-etal-2021-warp}可以使用预定义的类别名称作为标签词进行初始化，本文将其作为基线方法列在表~\ref{tab:experiment-few-shot}中。它也可以在没有手动定义类别名称的情况下随机初始化。本文在5-shot和10-shot实验中测试了带有和不带有手动定义类别名称的Soft 语言表达器的性能。表~\ref{app:soft-pilot}中展示了这一结果。SOFT是使用类名的软语言表达器，而SOFT w.o. M是不使用手动语言表达器的变体。可以看出，两者之间的差距通常较大。因此，进一步改进带有手动定义类别名称的语言表达器比没有任何人类先验的从零学习的语言表达器更具前景。
-
+根据~\citet{gao2020making}，手动定义的语言表达器比自动搜索/优化的语言表达器更具竞争力，甚至表现更好，这进一步加强了本文通过注入更多外部人类知识来改进手动语言表达器的动机。为了进一步说明手动语言表达器的优势，本文在软语言表达器中进行了初步实验。软语言表达器~\cite{hambardzumyan-etal-2021-warp}可以使用预定义的类别名称作为标签词进行初始化，本文将其作为基线方法列在表~\ref{tab:experiment-few-shot}中。它也可以在没有手动定义类别名称的情况下随机初始化。本文在5-shot和10-shot实验中测试了带有和不带有手动定义类别名称的软语言表达器的性能。表~\ref{app:soft-pilot}中展示了这一结果。SOFT是使用类名的软语言表达器，而SOFT w.o. M是不使用手动语言表达器的变体。可以看出，两者之间的差距通常较大。因此，进一步改进带有手动定义类别名称的语言表达器比没有任何人类先验的从零开始学习的语言表达器更具前景。
 
 
 \begin{table*}[!htbp]
@@ -404,7 +403,7 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
   
 
 \begin{table*}[!ht]
-  \caption{1/5/10/20 样本文本分类的结果如下
+  \caption{1/5/10/20 样本文本分类的结果
   }
   \begin{center}
   \scalebox{0.72}{
@@ -467,7 +466,7 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 
 
 \subsubsection{主要结果}
-在本小节中，本文介绍了具体结果并提供了对KPT的可能见解。
+本小节介绍具体结果并提供了对KPT的可能见解。
 
 \textbf{零样本。}\quad 表~\ref{tab:experiment-zero-shot}中展示了零样本性能。括号中显示了最佳模板的结果。缩进表示实验配置是基于上一级缩进的修改。可以看出，除KPT-CC外，KPT的所有变体均优于PT和PT+CC基线，这表明本文方法的有效性。PT与PT+CC的比较证明，上下文校正在零样本设置中非常有效。KPT-FR-RR-CC的结果（即没有任何优化的变体）揭示了自动构建的知识化标签词中存在严重的标签噪声。KPT-FR-RR与KPT-FR-RR-CC之间的差距大于PT+CC与PT之间的差距，这表明知识化标签词的先验概率存在显著差异，正如本文在~\ref{sec: refine-CC}中的假设。KPT、KPT-FR和KPT-FR-RR之间的比较证明了优化方法的有效性。
 
@@ -487,12 +486,12 @@ KPT中标签词的几个示例如表~\ref{tab:label_words_examples}所示。
 
 \subsubsection{预测词的多样性}
 
-KPT的一个优势是能够生成不同粒度的多样化标签词。为了具体量化这种多样性，本文进行了案例研究。对于类别$y$的正确预测句子，统计标签词$v\in \mathcal{V}_y$出现在$\texttt{[MASK]}$位置前5个预测中的频率。然后在图~\ref{fig:violin}中展示了频率最高的前15个标签词。由于篇幅限制，仅展示了AG新闻数据集中$\textsc{Sports}$和$\textsc{Business}$类别的结果。
+KPT的一个优势是能够生成不同粒度的多样化标签词。为了具体量化这种多样性，本文进行了案例研究。对于类别$y$的正确预测句子，统计标签词$v\in \mathcal{V}_y$出现在$\texttt{[MASK]}$位置前5个预测中的频率。然后在图~\ref{fig:violin}中展示了频率最高的前15个标签词。
 图~\ref{fig:violin}绘制了两个类别的结果：\textsc{SPORTS}（左）和\textsc{BUSINESS}（右）。可以看出预测的标签词具有多样性，而不仅仅是原始的类别名称。这些预测的标签词涵盖了相应主题的多个方面。例如，对于主题\textsc{Sports}，预测的“leagues”、“football”和“coach”从不同角度与其相关。
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{kptplots/toplabelwords_crop.zh.pdf}
+    \includegraphics[width=\linewidth]{kptplots/toplabelwords_crop.zh.png}
     \caption{出现在前5个预测中的高频词}
     \label{fig:violin}
 \end{figure}
@@ -501,7 +500,7 @@ KPT的一个优势是能够生成不同粒度的多样化标签词。为了具�
 \label{app:analysis}
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{kptplots/SupportSetSize.zh.pdf}
+    \includegraphics[width=0.75\linewidth]{kptplots/SupportSetSize.zh.pdf}
     \caption{支持集大小与零样本性能的关系}
     \label{fig:calistudy}
 \end{figure}
@@ -516,7 +515,7 @@ KPT的一个优势是能够生成不同粒度的多样化标签词。为了具�
 
 \subsubsection{监督数据减轻校准需求}
 \label{app:fewshot-cali}
-尽管校准在零样本设置中至关重要，但在少样本设置中本文未进行校准，因为假设标签词的后验概率可以通过少量训练实例调整到所需幅度。出于同样的假设，本文也未进行频率修正。为验证这一假设，本文在KPT中同时加入上下文校准和频率修正，并在不同设置下测试性能。结果如表~\ref{tab:experiment-fewshot-cc-rf}所示。绿色上箭头\gd 表示结果高于表~\ref{tab:experiment-few-shot}中的KPT，红色下箭头\bd 表示结果低于表~\ref{tab:experiment-few-shot}中的KPT。与表~\ref{tab:experiment-few-shot}中未使用CC和FR的KPT相比，性能对比通过上下箭头表示。可以看出，除了雅虎数据集数据集外，改进并不一致，甚至有时为负，这支持了本文的假设：监督输入数据大大减轻了校准的需求。
+尽管校准在零样本设置中至关重要，但在少样本设置中本文未进行校准，因为假设标签词的后验概率可以通过少量训练实例调整到所需幅度。出于同样的假设，本文也未进行频率修正。为验证这一假设，本文在KPT中同时加入上下文校准和频率修正，并在不同设置下测试性能。结果如表~\ref{tab:experiment-fewshot-cc-rf}所示。绿色上箭头\gd 表示结果高于表~\ref{tab:experiment-few-shot}中的KPT，红色下箭头\bd 表示结果低于表~\ref{tab:experiment-few-shot}中的KPT。可以看出，除了雅虎数据集外，改进并不一致，甚至有时为负，这支持了本文的假设：监督输入数据大大减轻了校准的需求。
 
 \begin{table}[!htbp]
 \caption{少样本实验中的上下文校准和频率修正结果}
@@ -565,7 +564,7 @@ KPT的一个优势是能够生成不同粒度的多样化标签词。为了具�
 
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=0.96\linewidth]{kptplots/NRLW-3.zh.pdf}
+    \includegraphics[width=0.7\linewidth]{kptplots/NRLW-3.zh.pdf}
     \caption{经过频率修正和相关性修正后剩余的标签词数量}
     \label{fig:remainwords}
 \end{figure}
@@ -577,8 +576,8 @@ KPT的一个优势是能够生成不同粒度的多样化标签词。为了具�
 \section{本章小结}
 
 
-本章首先研究了使用预训练语言模型来回答错误前提问题，这些问题对人类来说很简单，但却能欺骗大多数预训练语言模型。本文提出了第一个人工编写的错误前提问题数据集。通过使用该数据集，我们成功激活了预训练语言模型的区分和解释能力，并生成了既能回答通用问题又能稳健应对错误前提问题的预训练语言模型。对于未来的研究方向，我们认为可以将更先进的技术与 FalseQA 结合使用，以充分激活模型的能力，例如结合人类反馈的强化学习~\cite{ouyang2022training}。此外，将更多知识融入预训练语言模型也有助于其更好地回答错误前提问题。这部分工作证明了在微调阶段用“小数据撬动大能力”是可行的。
-在研究完能力激活方案后，本章进一步研究了知识激活方案。本章提出了KPT，该方法利用外部知识库扩展了提示微调中的标签词映射器。为了更好地利用知识库，本文提出了针对知识化标签词映射器的优化方法。实验表明，KPT在零样本和小样本设置中均展现出潜力。使得提示学习的样本效率大幅提高。
+本章研究了如何充分利用预训练模型的知识来进行高效微调。首先研究了是否能通过能力激活来使用预训练语言模型来回答错误前提问题。这些问题对人类来说很简单，但却能欺骗大多数预训练语言模型。本文提出了第一个人工编写的错误前提问题数据集。通过使用该数据集，本文成功激活了预训练语言模型的区分和解释能力，并生成了既能回答通用问题又能稳健应对错误前提问题的预训练语言模型。对于未来的研究方向，本文认为可以将更先进的技术与 FalseQA 结合使用，以充分激活模型的能力，例如结合人类反馈的强化学习~\cite{ouyang2022training}。此外，将更多知识融入预训练语言模型也有助于其更好地回答错误前提问题。这部分工作证明了在微调阶段用“小数据撬动大能力”是可行的。
+在研究完能力激活方案后，本章进一步研究了知识激活方案。借助预训练语言模型已经习得的知识，和人类知识库的对齐，本章提出了KPT，该方法利用外部知识库扩展了提示微调中的标签词映射器。为了更好地利用知识库，本文提出了针对知识化标签词映射器的优化方法。实验表明，KPT在零样本和小样本设置中均展现出潜力，使得提示学习的样本效率大幅提高。
 
 % 对于未来的工作，以下是与本研究相关的开放性问题值得探索：
 % 1. 在模板构建和标签词映射器设计方面，结合知识库与提示微调的更好方法。

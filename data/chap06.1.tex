@@ -1,11 +1,12 @@
 \chapter{少资源微调——参数高效微调的模块自动化寻优}
 
-上一章讲述了为了降低样本量，引入的基于知识先验的提示学习。之所以引入知识先验有效，是因为语言模型经过预训练，具备了和人类先验相同的输入输出空间。而这一章中，面对新兴的方法参数高效微调（或称增量微调），由于是在架构层面进行优化，人类的先验可能成为反作用，因此本章提出去除人类先验，利用自动化架构搜索确定参数高效微调方法。
+上一章主要研究利用预训练模型的知识，使用能力激活和知识激活来降低微调过程的数据开销。在微调过程中，由于模型过大、副本众多，微调的存算开销也不容小觑。本章主要研究参数高效微调方法，只调节模型一小部分参数的方案，来应对这一效率困难。本章针对当前的参数高效微调方法主要依靠手动选择微调模块，无法自动化寻找最优微调模块的问题，提出利用自动架构搜索的方法，搜索确定参数高效微调方法，最终实现了只用微调万分之一的参数即可对下游任务进行高效适配的目标。
 
-\section{基于稀疏模块搜索的参数高效微调}
+\section{参数高效微调的模块自动化寻优}
+
 \subsection{背景}
 
-通过对大型预训练模型进行微调来适应特定任务会带来巨大的计算和存储负担。最近关于参数高效微调（Delta Tuning）的研究发现，仅优化预训练模型中的一小部分参数即可达到与传统微调相当的性能。通常，参数高效微调方法会精心设计参数高效微调模块，这些模块可以应用于预训练模型内部的任意细粒度位置。然而，这些细粒度位置的有效性很大程度上依赖于复杂的手工指定，因此通常会产生次优结果。与手工指定不同，本文探索以自动化的方式构建参数高效微调模块。本文自动搜索参数高效微调的稀疏结构（S$^3$Delta）。基于多种参数高效微调方法的统一框架，S$^3$Delta通过双层优化进行可微分的参数高效微调结构搜索，并提出了一种偏移全局Sigmoid方法，以显式控制可训练参数的数量。大量实验表明，S$^3$Delta在可训练参数更少的情况下优于手工和随机结构。搜索到的结构在仅使用0.01\%可训练参数的情况下，保留了超过99\%的微调性能。此外，在极低可训练参数预算（0.0009\%$\sim$0.01\%）下，S$^3$Delta的优势更加明显。搜索到的结构具有可迁移性和可解释性，为未来参数高效微调方法的设计提供了建议和指导。
+通过对大规模预训练模型进行微调来适配特定任务会带来巨大的计算和存储负担。最近关于参数高效微调（Parameter-efficient Tuning，又称Delta Tuning）的研究发现，仅优化预训练模型中的一小部分参数即可达到与传统微调相当的性能。通常，参数高效微调方法会精心设计参数高效微调模块，这些模块可以应用于预训练模型内部的任意细粒度位置。然而，这些细粒度位置的有效性很大程度上依赖于复杂的手工指定，因此通常会产生次优结果。与手工指定不同，本文探索以自动化的方式构建参数高效微调模块。本文提出自动搜索参数高效微调的稀疏结构方法S3Delta。基于多种参数高效微调方法的统一框架，本文通过双层优化进行可微分的参数高效微调结构搜索，并提出了一种偏移全局Sigmoid方法，以显式控制可训练参数的数量。大量实验表明，S3Delta在可训练参数更少的情况下优于手工和随机结构。搜索到的结构在仅使用0.01\%可训练参数的情况下，保留了超过99\%的微调性能。此外，在极低可训练参数预算（0.0009\%$\sim$0.01\%）下，S3Delta的优势更加明显。搜索到的结构具有可迁移性和可解释性，为未来参数高效微调方法的设计提供了建议和指导。
 
 
 \subsection{方法}
@@ -13,7 +14,7 @@
 
 \subsubsection{预备知识}
 \label{sec:meth:preliminaries}
-\textbf{预训练模型适应。} 当前深度学习中流行的“预训练-微调”范式利用预训练模型$\mathcal{M}$及其参数$\Theta$，在下游任务$\mathcal{D}=\{\mathcal{D}_{\text{train}}, \mathcal{D}_{\text{val}}, \mathcal{D}_{\text{test}}\}$上继续优化$\Theta$，以最小化目标函数$\mathcal{L}$。在微调中，预训练模型的所有参数都通过训练集进行优化，以最小化$\mathcal{L}$，即：
+\textbf{预训练模型适应。} 当前深度学习中流行的“预训练+微调”范式利用预训练模型$\mathcal{M}$及其参数$\Theta$，在下游任务$\mathcal{D}=\{\mathcal{D}_{\text{train}}, \mathcal{D}_{\text{val}}, \mathcal{D}_{\text{test}}\}$上继续优化$\Theta$，以最小化目标函数$\mathcal{L}$。在微调中，预训练模型的所有参数都通过训练集进行优化，以最小化$\mathcal{L}$，即：
 \begin{equation}
    \operatorname{min}_\Theta \mathcal{L}(M(\Theta), \mathcal{D}_{\text{train}}).
 \end{equation}
@@ -25,7 +26,7 @@ Transformer中的计算过程可以抽象为隐藏表示的一系列变换。在
     \mathbf{H}^{\text{out}} = m(\mathbf{H}^{\text{in}}).
 \end{equation}
 
-\noindent\textbf{参数高效微调（Delta Tuning, 参数高效微调）。}\label{sec:meth:delta}
+\noindent\textbf{参数高效微调。}\label{sec:meth:delta}
 参数高效微调方法仅训练基于主干预训练模型的一小部分参数，以提高适应效率~\cite{houlsby2019parameter, pfeiffer2020adapterfusion, zaken2021bitfit, hu2021lora, mahabadi2021compacter,guo2021parameter,li2021prefix,lester2021power}。尽管各种参数高效微调模块的具体形式差异较大，但\citet{he2022unified}将它们统一为隐藏状态的修改$\Delta$~\footnote{本文使用了比~\cite{he2022unified}更灵活的表示法，考虑了冻结的主干模块$m$，从而可以区分以$\mathbf{H}^{\text{out}}$或$\mathbf{H}^{\text{in}}$为输入的参数高效微调模块。}：
 
 \begin{equation}
@@ -35,7 +36,7 @@ Transformer中的计算过程可以抽象为隐藏表示的一系列变换。在
 
 在统一视角下，一些参数高效微调方法的公式列于表~\ref{tab:delta_formula}中。参数高效微调模块可以应用于主干预训练模型的广泛位置，这些位置列于表~\ref{tab:delta_formula}的最右列。
 
-在训练过程中，冻结主干模块$m$中的所有参数$\Theta$，并将计算$\Delta$时引入的参数$\bdelta$作为唯一的可训练参数。因此，参数高效微调中的适应目标为：
+在训练过程中，冻结主干模块$m$中的所有参数$\Theta$，并将计算$\Delta$时引入的参数$\bdelta$作为唯一的可训练参数。因此，参数高效微调中的优化目标为：
 \begin{equation}
     \operatorname{min}_{\bdelta} \mathcal{L}(\mathcal{M}(\Theta, \bdelta), \mathcal{D}_{\text{train}}). 
 \label{equ:deltaobj}
@@ -97,7 +98,7 @@ Transformer中的计算过程可以抽象为隐藏表示的一系列变换。在
 其中$z_i \in \{0,1\}\sim {B}(1,p_i)$是从伯努利分布中随机采样的变量。
 
 
-\textbf{可微分参数高效微调结构搜索。} 由于激活位置的组合性，从具有大量潜在位置的搜索空间中找到最优结构具有挑战性。此外，直接比较完全训练的模型与每种参数高效微调结构是不可行的。本文提出\emph{通过基于梯度的优化来优化门控概率$p_i$}。为了使采样过程可微分，使用Binary Concrete分布~\cite{maddison2016concrete,jang2016categorical}作为伯努利分布的软近似：
+\textbf{可微分参数高效微调结构搜索。} 由于激活位置的组合性，从具有大量潜在位置的搜索空间中找到最优结构具有挑战性。此外，贪婪地直接比较完全训练的模型和每种参数高效微调结构是不可行的。本文提出\emph{通过基于梯度的优化来优化门控概率$p_i$}。为了使采样过程可微分，使用Binary Concrete分布~\cite{maddison2016concrete,jang2016categorical}作为伯努利分布的软近似：
 
 \begin{equation}
 \small
@@ -109,7 +110,7 @@ Transformer中的计算过程可以抽象为隐藏表示的一系列变换。在
 
 类似的分布被用于学习稀疏网络~\cite{louizos2017learning}或剪枝密集网络~\cite{wang2019structured}。通过用软近似$\hat{z}_i$替换硬采样$z_i$，可以在训练中通过$p_i$进行反向传播。然而，直接在概率空间$[0,1]$中优化$p_i$可能导致数值不稳定，因此，本文用结构参数$\alpha_i\in \mathbb{R}$对其进行参数化，即$p_i = g(\alpha_i)$。将所有结构参数记为$\balpha$。
 
-本文通过双层优化~\cite{anandalingam1992hierarchical, liu2018darts}来优化$\balpha$，即在优化参数高效微调模块参数$\bdelta^*$的条件下优化$\balpha$。内层和外层优化分别在训练数据的不同子集$\mathcal{D}_{\bdelta}$和$\mathcal{D}_{\balpha}$上进行，类似于在$\mathcal{D}_{\bdelta}$上训练结构并在$\mathcal{D}_{\balpha}$上验证，以避免对$\mathcal{D}_{\bdelta}$的过拟合。因此，优化目标为：
+本文通过双层优化~\cite{anandalingam1992hierarchical, liu2018darts}来优化$\balpha$，即在优化完毕参数高效微调模块参数$\bdelta^*$的条件下优化$\balpha$。内层和外层优化分别在训练数据的不同子集$\mathcal{D}_{\bdelta}$和$\mathcal{D}_{\balpha}$上进行，类似于在$\mathcal{D}_{\bdelta}$上训练结构并在$\mathcal{D}_{\balpha}$上验证，以避免对$\mathcal{D}_{\bdelta}$的过拟合。因此，优化目标为：
 
 {%\small
 \begin{align}
@@ -141,23 +142,23 @@ Transformer中的计算过程可以抽象为隐藏表示的一系列变换。在
 
     \textbf{基于偏移全局Sigmoid的显式稀疏控制。}
 
-搜索空间中的大多数参数高效微调模块是冗余的，对性能贡献很小。然而，搜索算法可能无法感知稀疏目标，从而退化为贪婪地添加更多参数高效微调模块。与之前通过$L_0$正则化惩罚密集结构的稀疏网络学习方法~\cite{louizos2017learning, guo2021parameter}不同，本文通过\emph{偏移全局Sigmoid}参数化在搜索过程中显式控制目标级别的结构稀疏性：
+搜索空间中的大多数参数高效微调模块是冗余的，对性能贡献很小。然而，搜索算法可能无法感知稀疏目标，从而退化为贪婪地添加更多参数高效微调模块。与之前通过$L_0$正则化惩罚密集结构的稀疏网络学习方法~\cite{louizos2017learning, guo2021parameter}不同，本文通过\emph{偏移全局Sigmoid}参数化在搜索过程中显式控制目标的结构稀疏程度：
 
 {%\small
 \begin{align}
-&p_i = \Tilde{p}_i \frac{\sum_i \operatorname{Detach}(\Tilde{p}_i)}{\sum_i \Tilde{p}_i} \label{equ:detachop},\\
-\quad & \text{其中}\quad \Tilde{p}_i = \operatorname{Sigmoid}(\frac{\alpha_i-\zeta}{\tau}). \label{equ:shiftedsigmoid}
+&p_i = \tilde{p}_i \frac{\sum_i \operatorname{Detach}(\tilde{p}_i)}{\sum_i \tilde{p}_i} \label{equ:detachop},\\
+\quad & \text{其中}\quad \tilde{p}_i = \operatorname{Sigmoid}(\frac{\alpha_i-\zeta}{\tau}). \label{equ:shiftedsigmoid}
  \end{align}
 }
 
-$\operatorname{Detach}(\cdot)$操作符将需要梯度的参数转换为无需梯度计算的标量。公式~\eqref{equ:detachop}不会改变$\Tilde{p}_i$的值，但它强制不同位置和参数高效微调模块之间的竞争，类似于$\operatorname{Softmax}$操作（详见小节~\ref{app:Gradient}）。
+$\operatorname{Detach}(\cdot)$操作符将需要梯度的参数转换为无需梯度计算的标量。公式~\eqref{equ:detachop}不会改变$\tilde{p}_i$的值，但它强制不同位置和参数高效微调模块之间的竞争，类似于$\operatorname{Softmax}$操作（详见小节~\ref{app:Gradient}）。
 
 在公式~\eqref{equ:shiftedsigmoid}中，$\zeta$是一个标量。增加$\zeta$的值会单调地将$p_i$减少到$0$，同时保持$p_i$在$[0,1]$范围内。因此，可训练参数的期望数量$\E[N]$是关于$\zeta$的单调函数：
 \begin{equation}
 %\small
    \E[N] = \E\left[\sum_i \mathbb{I}(z_i=1) |\bdelta_i|\right] \approx  \E\left[\sum_i \mathbb{I}(\hat{z}_i>0.5) |\bdelta_i|\right] =  \sum_i p_i|\bdelta_i|,
 \end{equation}
-其中$|\bdelta_i|$是计算$\Delta_i$时引入的参数数量。因此，可以通过单调优化动态调整$\zeta$，使$\E[N]$接近$\mathcal{B}$：
+其中$|\bdelta_i|$是计算$\Delta_i$时引入的参数数量。因此，可以通过动态调整$\zeta$，使$\E[N]$接近$\mathcal{B}$：
 
 \begin{equation}
 % \small
@@ -192,29 +193,29 @@ $\operatorname{Detach}(\cdot)$操作符将需要梯度的参数转换为无需�
 \label{app:theory:BCD}
 本文使用Binary Concrete分布作为伯努利分布$z\sim B(1,p)$的软近似，其中$p$是采样值为1的概率：
 \begin{equation}
-    \Tilde{z} = \sigma\left(\frac1\beta \operatorname{log}\frac{up}{(1-u)(1-p)}\right).
+    \tilde{z} = \sigma\left(\frac1\beta \operatorname{log}\frac{up}{(1-u)(1-p)}\right).
 \end{equation}
-$\Tilde{z}>0.5$的概率为$p$，即当采样$\Tilde{z}$时，可以用$\Tilde{z}$确定$z$的值：
+$\tilde{z}>0.5$的概率为$p$，即当采样$\tilde{z}$时，可以用$\tilde{z}$确定$z$的值：
 \begin{equation}
-    p(\Tilde{z}>0.5) = p\left(\frac{up}{(1-u)(1-p)}>1\right) = p(u>1-p) = p.
+    p(\tilde{z}>0.5) = p\left(\frac{up}{(1-u)(1-p)}>1\right) = p(u>1-p) = p.
 \end{equation}
 当$\beta$趋近于$0$时，Binary Concrete分布在分布上收敛于伯努利分布。对于任意常数$0<\epsilon<1$：
 \begin{align}
-    \operatorname{lim}_{\beta\rightarrow 0} P(\Tilde{z}<\epsilon) = 1-p \\
-    \operatorname{lim}_{\beta\rightarrow 0} P(\Tilde{z}>1-\epsilon) = p,
+    \operatorname{lim}_{\beta\rightarrow 0} P(\tilde{z}<\epsilon) = 1-p \\
+    \operatorname{lim}_{\beta\rightarrow 0} P(\tilde{z}>1-\epsilon) = p,
 \end{align}
-因此$\Tilde{z} \xrightarrow{d} z$。
+因此$\tilde{z} \xrightarrow{d} z$。
 
 
-\subsubsection{全局偏移Sigmoid的梯度}
+\subsubsection{偏移全局Sigmoid的梯度}
 \label{app:Gradient}
-在\emph{全局偏移Sigmoid}函数中，我们将一个值为$1$的常数与偏移Sigmoid相乘，以实现对每个DT模块结构参数的全局比较：
+在\emph{偏移全局Sigmoid}函数中，我们将一个值为$1$的常数与偏移Sigmoid相乘，以实现对每个参数高效微调模块结构参数的全局比较：
 \begin{align}
-    {p_i} & = \lambda_i \Tilde{p}_i \\
-    \lambda_i & = \frac{\sum_j \operatorname{Detach}( \Tilde{p}_j)}{\sum_j  \Tilde{p}_j}=1.
+    {p_i} & = \lambda_i \tilde{p}_i \\
+    \lambda_i & = \frac{\sum_j \operatorname{Detach}( \tilde{p}_j)}{\sum_j  \tilde{p}_j}=1.
 \end{align}
 
-尽管$p_i$的值与$\Tilde{p}_i$的值相等，但使用这两种参数化时的梯度不同，这导致结构参数优化中的行为不同。
+尽管$p_i$的值与$\tilde{p}_i$的值相等，但使用这两种参数化时的梯度不同，这导致结构参数优化中的行为不同。
 
 使用$\tilde{p}_i$作为参数化函数时，对$\alpha_i$的梯度为：
 \begin{equation}
@@ -224,7 +225,7 @@ $\Tilde{z}>0.5$的概率为$p$，即当采样$\Tilde{z}$时，可以用$\Tilde{z
 \begin{align}
 \frac{\partial {\mathcal{L}}}{\partial \alpha_i} & = \sum_j \frac{\partial {\mathcal{L}}}{\partial{p}_j} \frac{\partial{p_j}}{\alpha_i} = \sum_{j\neq i} \frac{\partial {\mathcal{L}}}{\partial{p}_j} \frac{\partial{p_j}}{\partial\alpha_i} + \frac{\partial {\mathcal{L}}}{\partial{p}_i} \frac{\partial{p_i}}{\partial\alpha_i} \\ 
 & = \sum_{j} \frac{\partial{{\mathcal{L}}}}{\partial p_j}\frac{\partial\lambda_j}{\partial \alpha_i} \tilde{p}_j + \lambda_j \frac{\partial{{\mathcal{L}}}}{\partial p_i}\frac{\partial\tilde{p}_i}{\partial{\alpha_i}} \\
-& = \sum_{j}\left(\frac{-\sum_k\operatorname{Detach}(\Tilde{p}_k)}{(\sum_k \Tilde{p}_k)^2}\frac{\partial{\tilde{p}_i}}{\partial{\alpha_i}}\Tilde{p}_j\frac{\partial{{\mathcal{L}}}}{\partial{p}_j}\right) + \frac{\partial{{\mathcal{L}}}}{\partial p_i}\frac{\partial\tilde{p}_i}{\partial{\alpha_i}}  \\
+& = \sum_{j}\left(\frac{-\sum_k\operatorname{Detach}(\tilde{p}_k)}{(\sum_k \tilde{p}_k)^2}\frac{\partial{\tilde{p}_i}}{\partial{\alpha_i}}\tilde{p}_j\frac{\partial{{\mathcal{L}}}}{\partial{p}_j}\right) + \frac{\partial{{\mathcal{L}}}}{\partial p_i}\frac{\partial\tilde{p}_i}{\partial{\alpha_i}}  \\
 & = \frac{\partial\tilde{p}_i}{\partial{\alpha_i}} \left(-\sum_j\frac{\tilde{p}_j}{\sum_k{\tilde{p}_k}}\frac{\partial{{\mathcal{L}}}}{\partial{p_j}} + \frac{\partial{{\mathcal{L}}}}{\partial{p_i}}\right).
 \end{align}
 
@@ -246,7 +247,7 @@ $\Tilde{z}>0.5$的概率为$p$，即当采样$\Tilde{z}$时，可以用$\Tilde{z
 
 本文使用$\text{T}5_{\text{large}}$模型（703M参数）作为主干模型，并在除全量微调外的所有实验中冻结预训练参数。优化器采用AdamW，并使用线性学习率衰减调度。
 
-对于S3Delta，遵循DARTS~\cite{liu2018darts}的方法，将原始训练集$\mathcal{D}_{\text{train}}$均分为两部分：$\mathcal{D}_{\bdelta}$用于优化DT模块中的参数，$\mathcal{D}_{\balpha}$用于优化结构参数。原始验证集用于每$I_{\text{eval}}$步评估并保存搜索结构。搜索到的结构在原始训练集$\mathcal{D}_{\text{train}}$上重新训练，并在$\mathcal{D}_{\text{val}}$上评估。本文报告最终$\mathcal{D}_{\text{test}}$上8个种子的平均性能及标准差。
+对于S3Delta，遵循DARTS~\cite{liu2018darts}的方法，将原始训练集$\mathcal{D}_{\text{train}}$均分为两部分：$\mathcal{D}_{\bdelta}$用于优化参数高效微调模块中的参数，$\mathcal{D}_{\balpha}$用于优化结构参数。原始验证集用于每$I_{\text{eval}}$步评估并保存搜索结构。搜索到的结构在原始训练集$\mathcal{D}_{\text{train}}$上重新训练，并在$\mathcal{D}_{\text{val}}$上评估。本文报告最终$\mathcal{D}_{\text{test}}$上8个种子的平均性能及标准差。
 \subsubsection{基线方法}
 
 本文与几种广泛使用的基线方法进行了比较。
@@ -268,9 +269,7 @@ $\Tilde{z}>0.5$的概率为$p$，即当采样$\Tilde{z}$时，可以用$\Tilde{z
 
 \subsubsection{超参数}
 \label{app:hyperparameters}
-本文在BoolQ和SST2数据集上进行了预实验，尝试了学习率在\{3e-5, 3e-4, 3e-3\}、$\alpha$学习率在\{1e-3, 1e-2, 1e-1, 1\}以及$\tau$在\{0.1, 0.3, 1\}中的不同组合，最终选择了表现最佳的学习率3e-4、$\alpha$学习率0.1和$\tau$=1。对于$\beta$，本文将其设置为1。不同任务的具体参数列于表~\ref{app:tab:hyperparameters}中。
-
-特别地，对于全量微调，本文尝试了学习率在\{3e-5, 1e-4, 3e-4\}中的不同值，发现3e-5表现最佳。本文将上述超参数应用于所有基线方法以及搜索结构的重新训练阶段，并未进行进一步的超参数调优。因此，尽管通过数据集特定的网格搜索可能会获得更好的性能，但本文的比较是公平的。
+本文在BoolQ和SST2数据集上进行了预实验，尝试了学习率在\{3e-5, 3e-4, 3e-3\}、$\alpha$学习率在\{1e-3, 1e-2, 1e-1, 1\}以及$\tau$在\{0.1, 0.3, 1\}中的不同组合，最终选择了表现最佳的学习率3e-4、$\alpha$学习率0.1和$\tau$=1。对于$\beta$，本文将其设置为1。不同任务的具体参数列于表~\ref{app:tab:hyperparameters}中。特别地，对于全量微调，本文尝试了学习率在\{3e-5, 1e-4, 3e-4\}中的不同值，发现3e-5表现最佳。本文将上述超参数应用于所有基线方法以及搜索结构的重新训练阶段，并未进行进一步的超参数调优。因此，尽管通过数据集特定的网格搜索可能会获得更好的性能，但本文的比较是公平的。
 
 \begin{table}[]
 \caption{在不同任务上的特定超参数}
@@ -308,9 +307,9 @@ WiC       & 16        & 20    & 100              & 16        & 20    & 100      
 搜索空间对S3Delta的性能有显著影响。在实验中，本文定义了两类搜索空间。
 
 \begin{enumerate}
-\item \noindent{\textbf{混合搜索空间（Mix）}}。第一个搜索空间考虑了LoRA、Adapter-LR、BitFit和LNFit模块的混合。LoRA可以应用于Transformer块中的任何线性模块，包括注意力模块（ATTN）的查询（Q）、键（K）、值（V）、输出（O）子模块，以及前馈模块（FFN）中的两个子层W1和W2。Adapter-LR理论上可以应用于计算图中的任何位置，但为了避免搜索空间过于复杂，本文将其限制在ATTN模块和FFN模块的输出位置。对于BitFit，潜在的应用位置包括所有线性模块（Q、K、V、O、W1、W2）和层归一化模块（LN）。对于LNFit，潜在位置为所有LN模块。在该搜索空间中，共有$916$个潜在的DT模块可供选择，如果不考虑参数预算约束，候选结构总数为$2^{916}$。本文将在该搜索空间上搜索到的结构记为\textbf{S3Delta-M}。
+\item \noindent{\textbf{混合搜索空间（Mix）}}。第一个搜索空间考虑了LoRA、Adapter-LR、BitFit和LNFit模块的混合。LoRA可以应用于Transformer块中的任何线性模块，包括注意力模块（ATTN）的查询（Q）、键（K）、值（V）、输出（O）子模块，以及前馈模块（FFN）中的两个子层W1和W2。Adapter-LR理论上可以应用于计算图中的任何位置，但为了避免搜索空间过于复杂，本文将其限制在ATTN模块和FFN模块的输出位置。对于BitFit，潜在的应用位置包括所有线性模块（Q、K、V、O、W1、W2）和层归一化模块（LN）。对于LNFit，潜在位置为所有LN模块。在该搜索空间中，共有$916$个潜在的参数高效微调模块可供选择，如果不考虑参数预算约束，候选结构总数为$2^{916}$。本文将在该搜索空间上搜索到的结构记为\textbf{S3Delta-M}。
 
-\item \noindent{\textbf{LoRA搜索空间}}。本文将搜索空间缩小为单一类型的DT模块，以LoRA为例。潜在位置与混合搜索空间中的LoRA模块相同，共有288个潜在位置。本文将在该搜索空间上搜索到的结构记为\textbf{S3Delta-L}。
+\item \noindent{\textbf{LoRA搜索空间}}。本文将搜索空间缩小为单一类型的参数高效微调模块，以LoRA为例。潜在位置与混合搜索空间中的LoRA模块相同，共有288个潜在位置。本文将在该搜索空间上搜索到的结构记为\textbf{S3Delta-L}。
 
 \end{enumerate}
 
@@ -426,11 +425,11 @@ WiC       & 16        & 20    & 100              & 16        & 20    & 100      
 
 \subsubsection{GLUE和SuperGLUE上的结果}
 \label{sec:resultsonglue}
-表~\ref{tab:glue}展示了不同方法在GLUE和SuperGLUE任务上的性能表现。\colorbox{themegreen}{绿色}和\colorbox{themeblue}{蓝色}分别表示搜索空间内方法中的最佳和次佳分数。前三行表示全量微调和其他DT方法的结果，这些方法由于可训练参数比例较高，未包含在搜索空间中。在SuperGLUE任务中，由于COPA的结果波动较大（$\pm$26.00），SuperGLUE的平均结果容易受到COPA结果的影响。因此，本文还报告了排除COPA后的平均结果（AVG$_{-\text{COPA}}$）。黄色矩形的宽度与可训练参数比例成正比。本文将S3Delta与搜索空间内手工设计的结构进行比较，可以发现S3Delta-M（1.39\%\%）在GLUE和SuperGLUE（排除COPA）上取得了最高的平均分数，尽管其使用的可训练参数数量最少（约为BitFit的$1/5$）。S3Delta-M（0.35\%\%）也优于Adapter-LR、LoRA（$r$=1）和LNFit，分别使用了约$1/12$、$1/8$和$1/5$的可训练参数。
+表\ref{tab:glue}展示了不同方法在GLUE和SuperGLUE任务上的性能表现。\colorbox{themegreen}{绿色}和\colorbox{themeblue}{蓝色}分别表示搜索空间内方法中的最佳和次佳分数。前三行表示全量微调和其他参数高效微调方法的结果，这些方法由于可训练参数比例较高，未包含在搜索空间中。在SuperGLUE任务中，由于COPA的结果波动较大（$\pm$26.00），SuperGLUE的平均结果容易受到COPA结果的影响。因此，本文还报告了排除COPA后的平均结果（AVG$_{-\text{COPA}}$）。黄色矩形的宽度与可训练参数比例成正比。本文将S3Delta与搜索空间内手工设计的结构进行比较，可以发现S3Delta-M（1.39\%\%）在GLUE和SuperGLUE（排除COPA）上取得了最高的平均分数，尽管其使用的可训练参数数量最少（约为BitFit的$1/5$）。S3Delta-M（0.35\%\%）也优于Adapter-LR、LoRA（$r$=1）和LNFit，分别使用了相对这些方法约$1/12$、$1/8$和$1/5$的可训练参数。
 
-将搜索空间从混合（Mix）缩小到LoRA会导致性能的适度下降，这证明了在多种DT模块之间进行搜索的必要性。这也可能暗示，不同DT模块的组合可能会带来更强的性能。然而，尽管S3Delta-L的性能并非最优，但其表现优于LoRA（$r$=1），这表明尽管在预训练模型上均匀应用DT模块的设计有其优势，但仍未达到最优。
+将搜索空间从混合（Mix）缩小到LoRA会导致性能的适度下降，这证明了在多种参数高效微调模块之间进行搜索的必要性。这也可能暗示，不同参数高效微调模块的组合可能会带来更强的性能。然而，尽管S3Delta-L的性能并非最优，但其表现优于LoRA（$r$=1），这表明尽管在预训练模型上均匀应用参数高效微调模块的设计有其优势，但仍未达到最优。
 
-与全量微调相比，S3Delta-M（1.39\%\%）在GLUE和SuperGLUE上分别保留了99.2\%和98.1\%的性能。事实上，本文必须强调，S3Delta与特定DT模块是正交的。S3Delta的性能可以从未来更好的DT模块发明中受益，从而有可能在极有限的可训练参数下实现与全量微调相当甚至更优的性能。
+与全量微调相比，S3Delta-M（1.39\%\%）在GLUE和SuperGLUE上分别保留了99.2\%和98.1\%的性能。事实上，本文强调，S3Delta与特定参数高效微调模块是正交的。S3Delta的性能可以从未来更好的参数高效微调模块的发现中受益，从而有可能在极有限的可训练参数下实现与全量微调相当甚至更优的性能。
 
 \subsubsection{不同稀疏级别下的性能}
 \label{sec:exp:sparsitylevel}
@@ -467,7 +466,7 @@ WiC       & 16        & 20    & 100              & 16        & 20    & 100      
       \centering
       % 注意这里用 \linewidth 而非原来的 0.8\textwidth，以适应子图宽度
       \includegraphics[width=\linewidth]{s3dfigs/ablation_detach.zh.pdf}
-      \caption{局部与全局偏移Sigmoid的性能对比}
+      \caption{局部与偏移全局Sigmoid的性能对比}
       \label{app:fig:detach}
     \end{subfigure}
     
@@ -477,13 +476,13 @@ WiC       & 16        & 20    & 100              & 16        & 20    & 100      
   
 
 \subsubsection{搜索结构的可迁移性}
-S3Delta的另一个重要特性是搜索结构的可迁移性。在表~\ref{tab:transfer}中，将GLUE基准测试分为源数据集和目标数据集。目标数据集列于行名，源数据集列于列名。“无迁移” 表示该结构是在目标数据集上搜索得到的。在源数据集（混合搜索空间）上进行搜索，并在目标数据集上训练搜索到的结构。可以看出，搜索到的结构具有高度可迁移性，有时甚至优于直接在目标数据集上搜索到的结构。这种可迁移性保证了搜索结构的可重用性。
+S3Delta的另一个重要特性是搜索结构的可迁移性。为此，本文进行实验：在源数据集（混合搜索空间）上进行搜索，并在目标数据集上训练搜索到的结构。在表~\ref{tab:transfer}中，将GLUE基准测试分为源数据集和目标数据集。目标数据集列于行名，源数据集列于列名。“无迁移” 表示该结构是在目标数据集上搜索得到的。可以看出，搜索到的结构具有高度可迁移性，有时甚至优于直接在目标数据集上搜索到的结构。这种可迁移性保证了搜索结构的可重用性。
 
 \begin{figure}
 \caption{源数据集与目标数据集之间的结构迁移}
 \centering
 \label{tab:transfer}
-\resizebox{0.7\textwidth}{!}{
+\resizebox{0.68\textwidth}{!}{
 \begin{tabular}{l|cccc}
 \toprule
 \multirow{2}{*}{源数据} & \multicolumn{4}{c}{目标数据集} \\
@@ -502,7 +501,7 @@ SST2 & 91.37 $\pm$ 0.23 & 88.02 $\pm$ 0.10 & \femph{94.14 $\pm$ 0.16} & 55.58 $\
 
 
 \subsubsection{搜索过程的效率}
-尽管S3Delta主要关注搜索结构的参数效率，但本文也在表~\ref{tab:computation}中分析了搜索效率。总体而言，搜索最优结构消耗的训练时间是普通训练的5$\sim$8倍，GPU内存消耗是2倍（由于双层优化）。然而，与手动设计不同结构并运行大量评估相比，这种开销是可接受的。
+尽管S3Delta主要关注搜索出的结构的参数效率，但本文也在表~\ref{tab:computation}中分析了搜索效率。总体而言，搜索最优结构消耗的训练时间是普通训练的5$\sim$8倍，GPU内存消耗是2倍（由于双层优化）。然而，与手动设计不同结构并运行大量评估相比，这种开销是可接受的。
 
 % 假设导言区已加载 graphicx、colortbl、booktabs 宏包
 % 如果没有，在导言区添加 \usepackage{graphicx}、\usepackage{colortbl}、\usepackage{booktabs}
@@ -512,7 +511,7 @@ SST2 & 91.37 $\pm$ 0.23 & 88.02 $\pm$ 0.10 & \femph{94.14 $\pm$ 0.16} & 55.58 $\
     \caption{搜索阶段和重新训练阶段的计算资源}
     \label{tab:computation}
     \centering
-    \resizebox{0.75\textwidth}{!}{
+    \resizebox{0.6\textwidth}{!}{
         \begin{tabular}{l|ccc|ccc}
             \toprule
             数据集 & \multicolumn{3}{c|}{时间/分钟} & \multicolumn{3}{c}{内存/GB} \\
@@ -529,8 +528,8 @@ SST2 & 91.37 $\pm$ 0.23 & 88.02 $\pm$ 0.10 & \femph{94.14 $\pm$ 0.16} & 55.58 $\
 
 \subsubsection{搜索结构的可视化与解释}
 \label{sec:vis}
-为了理解搜索到的结构，本文在附录~\ref{app:heatmaps} 中绘制了不同数据集上 $p_i$ 的热力图。本文在大多数数据集上发现了明显的模式和相似性。因此，本文对不同数据集的 $p_i$ 求平均值，以查看搜索到的结构的总体模式。图~\ref{fig:visualization} 展示了 S3Delta-M 的 $p_i$ 热力图。方块中的数字是所有数据集和所有种子上$p_i$的平均值。颜色越深，表示DT模块的激活程度越高。x轴表示预训练模型的不同层（E表示编码器，D表示解码器），y轴表示预训练模型的不同位置（模块）。
-可以看到：(1) 较高解码器层中自注意力模块和交叉注意力模块中的比特拟合（BitFit）模块更受青睐，这证明比特拟合模块既简单又有效。这一观察结果也超出了人类专家的直觉，因为大多数先前的工作忽略了对交叉注意力模块进行训练或应用差异训练（DT）方法的贡献；(2) 编码器和解码器的最后几层受到重视，这与传统上将预训练模型用作特征提取器时仅训练最后一层的做法相近；(3) 我们还观察到比特拟合模块倾向于在较高层中近似均匀分布（详见附录~\ref{app:heatmaps}）。图~\ref{fig:vis-delta2} 展示了 S3Delta-L 的 $p_i$。选择较高层的趋势仍然存在。有趣的是，在编码器中查询子模块被优先考虑，而在解码器中值子模块受到重视。 
+为了理解搜索到的结构，本文在附录~\ref{app:heatmaps} 中绘制了不同数据集上 $p_i$ 的热力图。本文在大多数数据集上发现了明显的模式和相似性。因此，本文对不同数据集的 $p_i$ 求平均值，以查看搜索到的结构的总体模式。图~\ref{fig:visualization} 展示了 S3Delta-M 的 $p_i$ 热力图。方块中的数字是所有数据集和所有种子上$p_i$的平均值。颜色越深，表示参数高效微调模块的激活程度越高。x轴表示预训练模型的不同层（E表示编码器，D表示解码器），y轴表示预训练模型的不同位置（模块）。
+可以看到：(1) 较高解码器层中自注意力模块和交叉注意力模块中的BitFit模块更受青睐。这证明BitFit模块既简单又有效。这一观察结果也超出了人类专家的直觉，因为大多数先前的工作忽略了对交叉注意力模块进行训练或应用参数高效微调方法的贡献；(2) 编码器和解码器的最后几层受到重视，这与传统上将预训练模型用作特征提取器时仅训练最后一层的做法相近；(3) 我们还观察到BitFit模块倾向于在较高层中近似均匀分布（详见附录~\ref{app:heatmaps}）。图~\ref{fig:vis-delta2} 展示了 S3Delta-L 的 $p_i$。选择较高层的趋势仍然存在。有趣的是，在编码器中查询子模块被优先考虑，而在解码器中值子模块受到重视。 
 
 % 图片部分
 \begin{figure}[!htbp]
@@ -560,7 +559,10 @@ SST2 & 91.37 $\pm$ 0.23 & 88.02 $\pm$ 0.10 & \femph{94.14 $\pm$ 0.16} & 55.58 $\
 为了显式控制稀疏性，本文提出了\emph{偏移全局Sigmoid}方法，这与之前工作中使用的$L_0$正则化~\cite{louizos2017learning}不同。我们在三个数据集上比较了使用\emph{偏移全局Sigmoid}和$L_0$正则化的结果。图~\ref{fig:ablation}中展示了这个对比。不同数据集上的性能以不同颜色表示。\emph{偏移全局Sigmoid}和\emph{$L_0$正则化}分别用实线和虚线表示。可以看出，在几乎所有稀疏度下，\emph{偏移全局Sigmoid}都优于$L_0$正则化，并且随着稀疏度的增加，其优势更加明显。
 
 
-关于是否使用全局偏移Sigmoid方法，本文也进行了消融实验。 如图~\ref{app:fig:detach}， 分别使用全局偏移Sigmoid $p_i$（记为Global）和不带全局比较的偏移Sigmoid $\tilde{p}_i$（记为Local）。这验证了全局偏移Sigmoid参数化的正确性。
+关于是否使用偏移全局Sigmoid方法，本文也进行了消融实验。 如图~\ref{app:fig:detach}， 分别使用偏移全局Sigmoid $p_i$（记为Global）和不带全局比较的偏移Sigmoid $\tilde{p}_i$（记为Local）。这验证了偏移全局Sigmoid参数化方法的正确性。
 
 
+\section{本章小结}
+本文提出了稀疏结构搜索方法（S3Delta），该方法在多种参数高效微调模块混合的统一搜索空间中，通过显式稀疏控制进行可微分的参数高效微调模块结构搜索。实验证明了S3Delta在寻找最优参数高效微调模块结构方面的有效性，并推动了可训练参数减少的极限。
+未来的研究方向包括以下值得探讨的开放性问题：（1）设计更好的搜索空间或更好的参数高效微调模块，以进一步探索结构搜索的潜力。（2）当前的神经架构搜索（NAS）算法并未针对存在预训练主干模型的场景进行优化，因此可以开发更专有化的搜索算法用于参数高效微调模块搜索。
 
